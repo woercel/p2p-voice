@@ -1,0 +1,508 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>P2P Voice</title>
+<style>
+  :root {
+    --bg: #0f1115; --card: #181b22; --field: #0c0e12; --line: #2a2f3a;
+    --text: #e7e9ee; --dim: #8b919d; --acc: #5b9cff; --ok: #3ecf8e; --bad: #ff5d5d; --warn: #f5b84a;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--text); font: 15px/1.45 system-ui, "Segoe UI", sans-serif; }
+  main { max-width: 720px; margin: 0 auto; padding: 24px 16px 48px; }
+  h1 { font-size: 20px; margin: 0 0 2px; }
+  h2 { font-size: 14px; margin: 0 0 8px; color: var(--dim); font-weight: 600; text-transform: uppercase; letter-spacing: .04em; }
+  .sub { color: var(--dim); margin: 0 0 18px; }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 16px; margin-bottom: 12px; }
+  label { display: block; color: var(--dim); font-size: 13px; margin: 10px 0 4px; }
+  input[type=text], select {
+    width: 100%; background: var(--field); color: var(--text); border: 1px solid var(--line);
+    border-radius: 8px; padding: 9px 10px; font: inherit;
+  }
+  .row { display: grid; grid-template-columns: 1fr 1fr; gap: 0 12px; }
+  @media (max-width: 560px) { .row { grid-template-columns: 1fr; } }
+  .check { display: flex; gap: 8px; align-items: flex-start; color: var(--text); font-size: 14px; margin-top: 14px; }
+  .check input { margin-top: 3px; }
+  .hint { color: var(--dim); font-size: 13px; margin: 6px 0 0; }
+  button {
+    background: var(--acc); color: #fff; border: 0; border-radius: 8px; padding: 10px 16px;
+    font: inherit; font-weight: 600; cursor: pointer;
+  }
+  button:disabled { opacity: .5; cursor: default; }
+  button.ghost { background: transparent; border: 1px solid var(--line); color: var(--text); }
+  button.danger { background: var(--bad); }
+  button.big { width: 100%; padding: 13px; font-size: 16px; margin-top: 16px; }
+  .banner { background: #1d2a44; border: 1px solid #2c4675; border-radius: 10px; padding: 10px 14px; margin-bottom: 12px; }
+  .err { color: var(--bad); margin: 10px 0 0; white-space: pre-wrap; }
+  .status { color: var(--dim); margin: 10px 0 0; }
+  .invite { display: flex; gap: 8px; }
+  .invite input { font-family: ui-monospace, Consolas, monospace; font-size: 13px; }
+  .peers { display: grid; gap: 10px; margin-top: 12px; }
+  .peer { background: var(--field); border: 1px solid var(--line); border-radius: 10px; padding: 12px; transition: border-color .1s; }
+  .peer.speaking { border-color: var(--ok); }
+  .peer .top { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+  .peer .name { font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .peer .stats { color: var(--dim); font-size: 12px; font-variant-numeric: tabular-nums; margin-top: 2px; }
+  .meter { height: 6px; background: #20242d; border-radius: 3px; overflow: hidden; margin: 10px 0 8px; }
+  .meter > div { height: 100%; width: 0; background: var(--ok); transition: width 50ms linear; }
+  .vol { display: flex; align-items: center; gap: 10px; font-size: 13px; color: var(--dim); }
+  .vol input { flex: 1; }
+  .vol span { width: 42px; text-align: right; font-variant-numeric: tabular-nums; }
+  .tag { font-size: 12px; padding: 2px 8px; border-radius: 99px; background: #262b35; color: var(--dim); white-space: nowrap; }
+  .tag.muted { background: #3a1f22; color: var(--bad); }
+  .bar { display: flex; gap: 8px; flex-wrap: wrap; justify-content: space-between; align-items: center; }
+  .empty { color: var(--dim); text-align: center; padding: 18px 0 6px; }
+  [hidden] { display: none !important; }
+</style>
+</head>
+<body>
+<main>
+  <h1>P2P Voice</h1>
+  <p class="sub">Direkt von Browser zu Browser. Opus bis 510 kbit/s Stereo, keine Accounts.</p>
+
+  <div class="banner" id="invited" hidden>Du wurdest in einen Raum eingeladen. Namen eingeben und beitreten.</div>
+
+  <!-- Lobby -->
+  <section class="card" id="setup">
+    <div class="row">
+      <div>
+        <label for="name">Dein Name</label>
+        <input type="text" id="name" maxlength="32" placeholder="z. B. Max">
+      </div>
+      <div>
+        <label for="quality">Qualität (das, was du sendest)</label>
+        <select id="quality">
+          <option value="510000">510 kbit/s – Maximum</option>
+          <option value="256000">256 kbit/s – sehr hoch</option>
+          <option value="128000">128 kbit/s – hoch (transparent)</option>
+          <option value="64000">64 kbit/s – Discord-Niveau</option>
+        </select>
+      </div>
+    </div>
+    <details id="advanced">
+      <summary class="hint" style="cursor:pointer;margin-top:12px">Raum-Einstellungen</summary>
+      <div class="row">
+        <div>
+          <label for="room">Raum</label>
+          <input type="text" id="room" spellcheck="false">
+        </div>
+        <div>
+          <label for="pw">Passwort</label>
+          <input type="text" id="pw" spellcheck="false">
+        </div>
+      </div>
+      <label for="via">Treffpunkt (nur zum Finden – Audio läuft immer direkt)</label>
+      <select id="via">
+        <option value="nostr">Nostr-Relays</option>
+        <option value="torrent">BitTorrent-Tracker</option>
+        <option value="mqtt">MQTT-Broker</option>
+      </select>
+      <p class="hint">Alle im Raum müssen denselben Treffpunkt nutzen. Er steckt im Einladungslink.</p>
+    </details>
+  </section>
+
+  <!-- Geräte (Lobby + Call) -->
+  <section class="card" id="devices">
+    <div class="row">
+      <div>
+        <label for="mic">Mikrofon</label>
+        <select id="mic"><option value="">Standard-Mikrofon</option></select>
+      </div>
+      <div id="outWrap">
+        <label for="out">Ausgabe</label>
+        <select id="out"><option value="">Standard-Ausgabe</option></select>
+      </div>
+    </div>
+    <label class="check">
+      <input type="checkbox" id="raw" checked>
+      <span>Kopfhörer-Modus: Echo-Unterdrückung, Rauschfilter und Auto-Lautstärke aus.<br>
+      <span class="hint">Beste Qualität. Ohne Kopfhörer ausschalten, sonst hören die anderen sich selbst.</span></span>
+    </label>
+  </section>
+
+  <section id="lobbyActions">
+    <button class="big" id="join">Raum beitreten</button>
+    <p class="status" id="status"></p>
+    <p class="err" id="error"></p>
+  </section>
+
+  <!-- Call -->
+  <section class="card" id="call" hidden>
+    <h2>Einladungslink</h2>
+    <div class="invite">
+      <input type="text" id="link" readonly>
+      <button id="copy">Kopieren</button>
+    </div>
+    <p class="hint" id="fileWarn" hidden>Hinweis: Die Seite läuft als lokale Datei. Der Link klappt nur bei Leuten, die die Datei am selben Pfad haben. Für einen echten Link die Datei online stellen (z. B. GitHub Pages).</p>
+
+    <div class="peers">
+      <div class="peer" id="self">
+        <div class="top">
+          <div class="name" id="selfName">Du</div>
+          <span class="tag" id="selfTag">Mikro an</span>
+        </div>
+        <div class="meter"><div id="selfMeter"></div></div>
+        <div class="bar">
+          <button class="ghost" id="mute">Stumm (M)</button>
+          <span class="hint" id="roomInfo"></span>
+          <button class="danger" id="leave">Verlassen</button>
+        </div>
+      </div>
+      <div id="peerList"></div>
+      <p class="empty" id="empty">Noch niemand da. Schick den Link rum.</p>
+    </div>
+  </section>
+</main>
+
+<template id="peerTpl">
+  <div class="peer">
+    <div class="top">
+      <div class="name">Verbinde…</div>
+      <span class="tag">verbinde</span>
+    </div>
+    <div class="stats">–</div>
+    <div class="meter"><div></div></div>
+    <div class="vol">Lautstärke <input type="range" min="0" max="200" value="100"><span>100 %</span></div>
+  </div>
+</template>
+
+<script type="module">
+const TRYSTERO_VERSION = '0.26.0';
+const APP_ID = 'hifi-p2p-voice/v1';
+
+const $ = s => document.querySelector(s);
+const hash = new URLSearchParams(location.hash.slice(1));
+const store = {
+  get(k) { try { return localStorage.getItem(k); } catch { return null; } },
+  set(k, v) { try { localStorage.setItem(k, v); } catch {} },
+};
+
+// ---------- Opus auf Maximum: eingehende SDPs anpassen ----------
+// fmtp-Parameter in einer SDP sagen, was deren Absender empfangen will.
+// Wenn wir die SDP der Gegenseite anpassen, sendet unser Encoder in dieser Qualität.
+let BITRATE = 510000;
+function tuneOpus(sdp) {
+  const m = sdp.match(/a=rtpmap:(\d+) opus\/48000\/2/i);
+  if (!m) return sdp;
+  const pt = m[1];
+  const want = {
+    minptime: 10, useinbandfec: 1, stereo: 1, 'sprop-stereo': 1,
+    maxaveragebitrate: BITRATE, maxplaybackrate: 48000, 'sprop-maxcapturerate': 48000,
+    cbr: 0, usedtx: 0,
+  };
+  const re = new RegExp(`a=fmtp:${pt} ([^\\r\\n]*)`);
+  const build = base => `a=fmtp:${pt} ` + Object.entries({ ...base, ...want }).map(([k, v]) => `${k}=${v}`).join(';');
+  if (re.test(sdp)) {
+    return sdp.replace(re, (_, params) => {
+      const base = {};
+      params.split(';').forEach(kv => { const [k, v] = kv.trim().split('='); if (k) base[k] = v; });
+      return build(base);
+    });
+  }
+  return sdp.replace(m[0], `${m[0]}\r\n${build({})}`);
+}
+const origSetRemote = RTCPeerConnection.prototype.setRemoteDescription;
+RTCPeerConnection.prototype.setRemoteDescription = function (desc, ...rest) {
+  try { if (desc && desc.sdp) desc = { type: desc.type, sdp: tuneOpus(desc.sdp) }; } catch (e) { console.warn(e); }
+  return origSetRemote.call(this, desc, ...rest);
+};
+
+// ---------- Lobby vorbefüllen ----------
+const rid = n => { const a = new Uint8Array(n); crypto.getRandomValues(a); return [...a].map(b => (b % 36).toString(36)).join(''); };
+$('#room').value = hash.get('r') || rid(10);
+$('#pw').value = hash.get('p') || rid(16);
+$('#via').value = ['nostr', 'torrent', 'mqtt'].includes(hash.get('v')) ? hash.get('v') : 'nostr';
+$('#name').value = store.get('name') || '';
+$('#quality').value = store.get('quality') || '510000';
+$('#raw').checked = store.get('raw') !== '0';
+if (hash.get('r')) $('#invited').hidden = false;
+const canSink = typeof AudioContext !== 'undefined' && 'setSinkId' in AudioContext.prototype;
+if (!canSink) $('#outWrap').hidden = true;
+
+async function fillDevices() {
+  const devs = await navigator.mediaDevices.enumerateDevices();
+  const fill = (sel, list, def, key) => {
+    const cur = sel.value || store.get(key) || '';
+    sel.innerHTML = `<option value="">${def}</option>` +
+      list.filter(d => d.deviceId && d.deviceId !== 'default')
+          .map(d => `<option value="${d.deviceId}">${(d.label || 'Gerät').replace(/</g, '&lt;')}</option>`).join('');
+    if ([...sel.options].some(o => o.value === cur)) sel.value = cur;
+  };
+  fill($('#mic'), devs.filter(d => d.kind === 'audioinput'), 'Standard-Mikrofon', 'mic');
+  fill($('#out'), devs.filter(d => d.kind === 'audiooutput'), 'Standard-Ausgabe', 'out');
+}
+fillDevices().catch(() => {});
+
+// ---------- Audio ----------
+let ctx, localStream, room, info, selfAnalyser, selfSource;
+let muted = false;
+const peers = new Map(); // peerId -> {el, name, muted, gain, analyser, audioEl, last}
+
+function toneStream() { // Testton (#...&tone=1): links 440 Hz, rechts 660 Hz
+  const dest = ctx.createMediaStreamDestination(); dest.channelCount = 2;
+  const merger = ctx.createChannelMerger(2);
+  [440, 660].forEach((f, i) => {
+    const o = ctx.createOscillator(); o.frequency.value = f;
+    const g = ctx.createGain(); g.gain.value = 0.15;
+    o.connect(g).connect(merger, 0, i); o.start();
+  });
+  merger.connect(dest);
+  return dest.stream;
+}
+
+async function getMic() {
+  if (hash.get('tone')) return toneStream();
+  const raw = $('#raw').checked;
+  const id = $('#mic').value;
+  return navigator.mediaDevices.getUserMedia({ audio: {
+    deviceId: id ? { exact: id } : undefined,
+    echoCancellation: !raw, noiseSuppression: !raw, autoGainControl: !raw,
+    channelCount: { ideal: 2 }, sampleRate: { ideal: 48000 }, sampleSize: { ideal: 24 },
+  }});
+}
+
+function connectSelfMeter() {
+  if (selfSource) selfSource.disconnect();
+  selfSource = ctx.createMediaStreamSource(localStream);
+  selfAnalyser = ctx.createAnalyser(); selfAnalyser.fftSize = 512;
+  selfSource.connect(selfAnalyser);
+}
+
+const buf = new Float32Array(512);
+function level(an) {
+  an.getFloatTimeDomainData(buf);
+  let s = 0; for (let i = 0; i < buf.length; i++) s += buf[i] * buf[i];
+  return Math.sqrt(s / buf.length);
+}
+function meterLoop() {
+  if (selfAnalyser) {
+    const l = muted ? 0 : level(selfAnalyser);
+    $('#selfMeter').style.width = Math.min(100, Math.sqrt(l) * 180) + '%';
+    $('#self').classList.toggle('speaking', l > 0.02);
+  }
+  for (const p of peers.values()) {
+    if (!p.analyser) continue;
+    const l = level(p.analyser);
+    p.el.querySelector('.meter > div').style.width = Math.min(100, Math.sqrt(l) * 180) + '%';
+    p.el.classList.toggle('speaking', l > 0.02);
+  }
+  requestAnimationFrame(meterLoop);
+}
+
+// ---------- Peers ----------
+function peer(id) {
+  let p = peers.get(id);
+  if (p) return p;
+  const el = $('#peerTpl').content.firstElementChild.cloneNode(true);
+  $('#peerList').appendChild(el);
+  p = { el, name: null, muted: false };
+  const slider = el.querySelector('input[type=range]');
+  slider.oninput = () => {
+    el.querySelector('.vol span').textContent = slider.value + ' %';
+    if (p.gain) p.gain.gain.value = slider.value / 100;
+  };
+  peers.set(id, p);
+  renderPeer(id);
+  return p;
+}
+
+function renderPeer(id) {
+  const p = peers.get(id); if (!p) return;
+  p.el.querySelector('.name').textContent = p.name || 'Unbekannt';
+  const tag = p.el.querySelector('.tag');
+  tag.textContent = p.muted ? 'stumm' : (p.analyser ? 'verbunden' : 'verbinde');
+  tag.classList.toggle('muted', p.muted);
+  $('#empty').hidden = peers.size > 0;
+  $('#roomInfo').textContent = `${peers.size + 1} im Raum`;
+}
+
+function attachStream(id, stream) {
+  const p = peer(id);
+  if (p.source) p.source.disconnect();
+  // Chrome spielt Remote-WebRTC-Audio über Web Audio nur ab, wenn der Stream auch an einem Media-Element hängt
+  p.audioEl = p.audioEl || document.createElement('audio');
+  p.audioEl.srcObject = stream; p.audioEl.muted = true; p.audioEl.play().catch(() => {});
+  p.source = ctx.createMediaStreamSource(stream);
+  p.gain = p.gain || ctx.createGain();
+  p.gain.gain.value = p.el.querySelector('input[type=range]').value / 100;
+  p.analyser = p.analyser || ctx.createAnalyser(); p.analyser.fftSize = 512;
+  p.source.connect(p.gain);
+  p.gain.connect(p.analyser);
+  p.gain.connect(ctx.destination);
+  renderPeer(id);
+}
+
+function removePeer(id) {
+  const p = peers.get(id); if (!p) return;
+  try { p.source && p.source.disconnect(); p.gain && p.gain.disconnect(); } catch {}
+  if (p.audioEl) p.audioEl.srcObject = null;
+  p.el.remove();
+  peers.delete(id);
+  renderPeer(id);
+  $('#empty').hidden = peers.size > 0;
+  $('#roomInfo').textContent = `${peers.size + 1} im Raum`;
+}
+
+const myInfo = () => ({ name: $('#name').value.trim() || 'Anonym', muted });
+
+// ---------- Statistik: Bitrate, Ping, Verbindungsweg ----------
+async function statsTick() {
+  if (!room) return;
+  const pcs = room.getPeers ? room.getPeers() : {};
+  for (const [id, pc] of Object.entries(pcs)) {
+    const p = peers.get(id); if (!p || !pc || !pc.getStats) continue;
+    let st; try { st = await pc.getStats(); } catch { continue; }
+    let inb, out, pair;
+    st.forEach(r => {
+      if (r.type === 'inbound-rtp' && r.kind === 'audio') inb = r;
+      if (r.type === 'outbound-rtp' && r.kind === 'audio') out = r;
+      if (r.type === 'transport' && r.selectedCandidatePairId) pair = st.get(r.selectedCandidatePairId);
+    });
+    if (!pair) st.forEach(r => { if (r.type === 'candidate-pair' && (r.selected || (r.nominated && r.state === 'succeeded'))) pair = r; });
+    const now = performance.now();
+    const kbps = (bytes, key) => {
+      const prev = p.last && p.last[key];
+      const v = prev != null && bytes != null ? ((bytes - prev) * 8) / (now - p.last.t) : null;
+      return v == null ? '–' : Math.round(v);
+    };
+    const parts = [];
+    if (inb) parts.push(`↓ ${kbps(inb.bytesReceived, 'in')} kbit/s`);
+    if (out) parts.push(`↑ ${kbps(out.bytesSent, 'out')} kbit/s`);
+    if (pair && pair.currentRoundTripTime != null) parts.push(`${Math.round(pair.currentRoundTripTime * 1000)} ms`);
+    if (inb && inb.packetsReceived) {
+      const lost = Math.max(0, inb.packetsLost || 0);
+      parts.push(`${((lost / (lost + inb.packetsReceived)) * 100).toFixed(1)} % Verlust`);
+    }
+    if (pair) {
+      const lc = st.get(pair.localCandidateId), rc = st.get(pair.remoteCandidateId);
+      const relay = (lc && lc.candidateType === 'relay') || (rc && rc.candidateType === 'relay');
+      const addr = (rc && (rc.address || rc.ip)) || '';
+      parts.push(relay ? 'über Relay' : (addr.includes(':') ? 'direkt (IPv6)' : 'direkt'));
+    }
+    p.last = { t: now, in: inb && inb.bytesReceived, out: out && out.bytesSent };
+    p.el.querySelector('.stats').textContent = parts.join(' · ') || '–';
+  }
+}
+
+// ---------- Beitreten ----------
+function inviteLink() {
+  const base = location.href.split('#')[0];
+  const h = new URLSearchParams({ r: $('#room').value.trim(), p: $('#pw').value, v: $('#via').value });
+  return `${base}#${h}`;
+}
+
+$('#join').onclick = async () => {
+  $('#error').textContent = '';
+  const roomId = $('#room').value.trim();
+  if (!roomId) { $('#error').textContent = 'Raumname fehlt.'; return; }
+  store.set('name', $('#name').value.trim());
+  store.set('quality', $('#quality').value);
+  store.set('raw', $('#raw').checked ? '1' : '0');
+  BITRATE = Number($('#quality').value);
+  $('#join').disabled = true;
+
+  try {
+    $('#status').textContent = 'Mikrofon wird geöffnet…';
+    ctx = new AudioContext({ latencyHint: 'interactive' });
+    await ctx.resume();
+    if (canSink && $('#out').value) await ctx.setSinkId($('#out').value).catch(() => {});
+    localStream = await getMic();
+    await fillDevices().catch(() => {});
+    connectSelfMeter();
+
+    $('#status').textContent = 'Verbindungs-Bibliothek wird geladen…';
+    const via = $('#via').value;
+    const { joinRoom } = await import(`https://cdn.jsdelivr.net/npm/@trystero-p2p/${via}@${TRYSTERO_VERSION}/+esm`);
+
+    $('#status').textContent = 'Raum wird betreten…';
+    room = joinRoom({ appId: APP_ID, password: $('#pw').value }, roomId);
+    info = room.makeAction('info');
+    info.onMessage = (data, ctxInfo) => {
+      const id = ctxInfo && ctxInfo.peerId; if (!id || !data) return;
+      const p = peer(id);
+      p.name = String(data.name || 'Anonym').slice(0, 32);
+      p.muted = !!data.muted;
+      renderPeer(id);
+    };
+    room.onPeerJoin = id => {
+      peer(id);
+      room.addStream(localStream, { target: id });
+      info.send(myInfo(), { target: id });
+    };
+    room.onPeerLeave = id => removePeer(id);
+    room.onPeerStream = (stream, id) => attachStream(id, stream);
+
+    history.replaceState(null, '', inviteLink());
+    $('#link').value = inviteLink();
+    $('#fileWarn').hidden = location.protocol !== 'file:';
+    $('#selfName').textContent = myInfo().name + ' (du)';
+    $('#setup').hidden = true; $('#lobbyActions').hidden = true; $('#invited').hidden = true;
+    $('#call').hidden = false;
+    $('#quality').disabled = true;
+    renderPeer();
+    $('#empty').hidden = false;
+    $('#roomInfo').textContent = '1 im Raum';
+    requestAnimationFrame(meterLoop);
+    setInterval(statsTick, 1000);
+  } catch (e) {
+    console.error(e);
+    $('#status').textContent = '';
+    $('#error').textContent = e && e.name === 'NotAllowedError'
+      ? 'Mikrofon-Zugriff wurde verweigert.'
+      : 'Fehler: ' + (e && e.message || e);
+    $('#join').disabled = false;
+  }
+};
+
+// ---------- Im Call ----------
+function setMuted(m) {
+  muted = m;
+  localStream.getAudioTracks().forEach(t => t.enabled = !m);
+  $('#mute').textContent = m ? 'Stumm aus (M)' : 'Stumm (M)';
+  $('#selfTag').textContent = m ? 'stumm' : 'Mikro an';
+  $('#selfTag').classList.toggle('muted', m);
+  if (info) info.send(myInfo());
+}
+$('#mute').onclick = () => setMuted(!muted);
+document.addEventListener('keydown', e => {
+  if (!room || e.target.matches('input[type=text], select') || e.repeat) return;
+  if (e.key === 'm' || e.key === 'M') setMuted(!muted);
+});
+
+async function swapMic() {
+  store.set('mic', $('#mic').value);
+  store.set('raw', $('#raw').checked ? '1' : '0');
+  if (!room) return;
+  try {
+    const fresh = await getMic();
+    const nt = fresh.getAudioTracks()[0], ot = localStream.getAudioTracks()[0];
+    nt.enabled = !muted;
+    if (room.replaceTrack) await Promise.all([].concat(room.replaceTrack(ot, nt)));
+    localStream.removeTrack(ot); localStream.addTrack(nt); ot.stop();
+    connectSelfMeter();
+  } catch (e) { alert('Mikrofon konnte nicht gewechselt werden: ' + e.message); }
+}
+$('#mic').onchange = swapMic;
+$('#raw').onchange = swapMic;
+$('#out').onchange = async () => {
+  store.set('out', $('#out').value);
+  if (ctx && canSink) await ctx.setSinkId($('#out').value).catch(e => alert(e.message));
+};
+
+$('#copy').onclick = async () => {
+  try { await navigator.clipboard.writeText($('#link').value); }
+  catch { $('#link').select(); document.execCommand('copy'); }
+  $('#copy').textContent = 'Kopiert ✓';
+  setTimeout(() => $('#copy').textContent = 'Kopieren', 1500);
+};
+
+$('#leave').onclick = async () => {
+  try { await room.leave(); } catch {}
+  location.reload();
+};
+window.addEventListener('pagehide', () => { try { room && room.leave(); } catch {} });
+</script>
+</body>
+</html>
