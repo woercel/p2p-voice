@@ -54,6 +54,19 @@
   .tag.muted { background: #3a1f22; color: var(--bad); }
   .bar { display: flex; gap: 8px; flex-wrap: wrap; justify-content: space-between; align-items: center; }
   .empty { color: var(--dim); text-align: center; padding: 18px 0 6px; }
+  .chan { border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
+  .chan.here { border-color: var(--acc); }
+  .chan-head { display: flex; align-items: center; gap: 8px; padding: 9px 12px; background: #1c2029; }
+  .chan-head .title { font-weight: 600; flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .chan-head .count { color: var(--dim); font-size: 13px; white-space: nowrap; }
+  .chan-head button { padding: 5px 11px; font-size: 13px; }
+  .chan-head .tag { background: #1d2a44; color: var(--acc); }
+  .chan-members { display: grid; gap: 8px; padding: 10px; }
+  .chan-members:empty::before { content: 'leer'; color: var(--dim); font-size: 13px; }
+  .me-chip { color: var(--dim); font-size: 13px; padding: 2px 2px; }
+  .peer.away { opacity: .5; }
+  .peer.away .meter { visibility: hidden; }
+  #newChan { width: 100%; border-style: dashed; }
   [hidden] { display: none !important; }
 </style>
 </head>
@@ -150,8 +163,9 @@
           <button class="danger" id="leave">Verlassen</button>
         </div>
       </div>
-      <div id="peerList"></div>
       <p class="empty" id="empty">Noch niemand da. Schick den Link rum.</p>
+      <div id="channels" class="peers" style="margin-top:0"></div>
+      <button class="ghost" id="newChan">+ Neue Gruppe</button>
     </div>
   </section>
 </main>
@@ -291,17 +305,137 @@ function meterLoop() {
   requestAnimationFrame(meterLoop);
 }
 
+// ---------- Kanäle ----------
+// Jeder Peer hält eine Kopie der Kanalliste; Änderungen werden an alle gesendet,
+// gelöschte IDs merken wir uns, damit ein später Sync sie nicht wiederbelebt.
+const LOBBY = 'lobby';
+const channels = new Map([[LOBBY, { id: LOBBY, name: 'Lobby', t: 0 }]]);
+const deleted = new Set();
+const chanEls = new Map();
+let myChannel = LOBBY;
+let chan;
+const meChip = document.createElement('div');
+meChip.className = 'me-chip';
+
+const chOf = p => (p.channel && channels.has(p.channel)) ? p.channel : LOBBY;
+const sameChannel = p => chOf(p) === myChannel;
+
+function addChannel(c) {
+  if (!c || !c.id || c.id === LOBBY || deleted.has(c.id) || channels.has(c.id)) return;
+  channels.set(String(c.id), { id: String(c.id).slice(0, 32), name: String(c.name || 'Gruppe').slice(0, 32), t: +c.t || Date.now() });
+}
+function dropChannel(id) {
+  if (!id || id === LOBBY) return;
+  deleted.add(id);
+  channels.delete(id);
+  if (myChannel === id) switchChannel(LOBBY);
+}
+function channelSnapshot() {
+  return { op: 'sync', channels: [...channels.values()].filter(c => c.id !== LOBBY), deleted: [...deleted] };
+}
+function switchChannel(id) {
+  myChannel = channels.has(id) ? id : LOBBY;
+  if (info) info.send(myInfo());
+  renderChannels();
+  applyRouting();
+}
+
+function makeChanEl(c) {
+  const el = document.createElement('div');
+  el.className = 'chan';
+  el.innerHTML = `<div class="chan-head"><span class="title"></span><span class="count"></span>
+    <span class="tag hereTag">du bist hier</span><button class="join">Beitreten</button>
+    ${c.id === LOBBY ? '' : '<button class="ghost del" title="Gruppe löschen">Löschen</button>'}</div>
+    <div class="chan-members"></div>`;
+  el.querySelector('.join').onclick = () => switchChannel(c.id);
+  const del = el.querySelector('.del');
+  if (del) del.onclick = () => {
+    const n = [...peers.values()].filter(p => chOf(p) === c.id).length + (myChannel === c.id ? 1 : 0);
+    if (n && !confirm(`„${c.name}“ löschen? ${n} Person(en) landen wieder in der Lobby.`)) return;
+    dropChannel(c.id);
+    if (chan) chan.send({ op: 'delete', id: c.id });
+    renderChannels();
+    applyRouting();
+  };
+  return el;
+}
+
+function renderChannels() {
+  const root = $('#channels');
+  for (const [id, el] of chanEls) if (!channels.has(id)) { el.remove(); chanEls.delete(id); }
+  const list = [...channels.values()].sort((a, b) => a.t - b.t || a.id.localeCompare(b.id));
+  for (const c of list) {
+    let el = chanEls.get(c.id);
+    if (!el) { el = makeChanEl(c); chanEls.set(c.id, el); }
+    root.appendChild(el);
+    const here = c.id === myChannel;
+    const members = [...peers.values()].filter(p => chOf(p) === c.id);
+    el.classList.toggle('here', here);
+    el.querySelector('.title').textContent = c.name;
+    el.querySelector('.count').textContent = `${members.length + (here ? 1 : 0)} Pers.`;
+    el.querySelector('.join').hidden = here;
+    el.querySelector('.hereTag').hidden = !here;
+    const box = el.querySelector('.chan-members');
+    if (here) box.appendChild(meChip);
+    members.forEach(p => { box.appendChild(p.el); p.el.classList.toggle('away', !here); });
+  }
+  $('#empty').hidden = peers.size > 0;
+  $('#roomInfo').textContent = `${peers.size + 1} im Raum`;
+}
+
+$('#newChan').onclick = () => {
+  const nums = [...channels.values()].map(c => +((c.name.match(/^Gruppe (\d+)$/) || [])[1] || 0));
+  const c = { id: 'g' + rid(10), name: `Gruppe ${Math.max(0, ...nums) + 1}`, t: Date.now() };
+  channels.set(c.id, c);
+  if (chan) chan.send({ op: 'create', c });
+  renderChannels();
+};
+
+// Audio nur an Leute im selben Kanal senden: für alle anderen wird die Spur
+// am RTCRtpSender auf null gesetzt (es fließt nichts), ohne Neuverhandlung.
+let routing = false, rerouting = false;
+async function applyRouting() {
+  if (!room || !localStream) return;
+  if (routing) { rerouting = true; return; }
+  routing = true;
+  try {
+    const track = localStream.getAudioTracks()[0];
+    const pcs = room.getPeers ? room.getPeers() : {};
+    for (const [id, pc] of Object.entries(pcs)) {
+      const p = peers.get(id);
+      if (!p || !pc || !pc.getSenders) continue;
+      p.parked = p.parked || new Set();
+      if (sameChannel(p)) {
+        for (const s of p.parked) { try { await s.replaceTrack(track); } catch {} }
+        p.parked.clear();
+      } else {
+        for (const s of pc.getSenders()) {
+          if (s.track && s.track === track) { try { await s.replaceTrack(null); p.parked.add(s); } catch {} }
+        }
+      }
+      updateGain(p);
+    }
+  } finally {
+    routing = false;
+    if (rerouting) { rerouting = false; applyRouting(); }
+  }
+}
+
+function updateGain(p) {
+  if (!p.gain) return;
+  p.gain.gain.value = sameChannel(p) ? p.el.querySelector('input[type=range]').value / 100 : 0;
+}
+
 // ---------- Peers ----------
 function peer(id) {
   let p = peers.get(id);
   if (p) return p;
   const el = $('#peerTpl').content.firstElementChild.cloneNode(true);
-  $('#peerList').appendChild(el);
-  p = { el, name: null, muted: false };
+  p = { el, name: null, muted: false, channel: LOBBY };
   const slider = el.querySelector('input[type=range]');
   slider.oninput = () => {
     el.querySelector('.vol span').textContent = slider.value + ' %';
-    if (p.gain) p.gain.gain.value = slider.value / 100;
+    updateGain(p);
   };
   peers.set(id, p);
   renderPeer(id);
@@ -314,8 +448,7 @@ function renderPeer(id) {
   const tag = p.el.querySelector('.tag');
   tag.textContent = p.muted ? 'stumm' : (p.analyser ? 'verbunden' : 'verbinde');
   tag.classList.toggle('muted', p.muted);
-  $('#empty').hidden = peers.size > 0;
-  $('#roomInfo').textContent = `${peers.size + 1} im Raum`;
+  renderChannels();
 }
 
 function attachStream(id, stream) {
@@ -326,7 +459,7 @@ function attachStream(id, stream) {
   p.audioEl.srcObject = stream; p.audioEl.muted = true; p.audioEl.play().catch(() => {});
   p.source = ctx.createMediaStreamSource(stream);
   p.gain = p.gain || ctx.createGain();
-  p.gain.gain.value = p.el.querySelector('input[type=range]').value / 100;
+  updateGain(p);
   p.analyser = p.analyser || ctx.createAnalyser(); p.analyser.fftSize = 512;
   p.source.connect(p.gain);
   p.gain.connect(p.analyser);
@@ -340,16 +473,18 @@ function removePeer(id) {
   if (p.audioEl) p.audioEl.srcObject = null;
   p.el.remove();
   peers.delete(id);
-  renderPeer(id);
-  $('#empty').hidden = peers.size > 0;
-  $('#roomInfo').textContent = `${peers.size + 1} im Raum`;
+  renderChannels();
 }
 
-const myInfo = () => ({ name: $('#name').value.trim() || 'Anonym', muted });
+const myInfo = () => {
+  const c = channels.get(myChannel);
+  return { name: $('#name').value.trim() || 'Anonym', muted, channel: myChannel, channelName: c && c.name, channelT: c && c.t };
+};
 
 // ---------- Statistik: Bitrate, Ping, Verbindungsweg ----------
 async function statsTick() {
   if (!room) return;
+  applyRouting();
   const pcs = room.getPeers ? room.getPeers() : {};
   for (const [id, pc] of Object.entries(pcs)) {
     const p = peers.get(id); if (!p || !pc || !pc.getStats) continue;
@@ -368,6 +503,7 @@ async function statsTick() {
       return v == null ? '–' : Math.round(v);
     };
     const parts = [];
+    if (!sameChannel(p)) parts.push(`in ${channels.get(chOf(p)).name}`);
     if (inb) parts.push(`↓ ${kbps(inb.bytesReceived, 'in')} kbit/s`);
     if (out) parts.push(`↑ ${kbps(out.bytesSent, 'out')} kbit/s`);
     if (pair && pair.currentRoundTripTime != null) parts.push(`${Math.round(pair.currentRoundTripTime * 1000)} ms`);
@@ -424,11 +560,27 @@ $('#join').onclick = async () => {
       const p = peer(id);
       p.name = String(data.name || 'Anonym').slice(0, 32);
       p.muted = !!data.muted;
+      if (data.channel && data.channelName) addChannel({ id: data.channel, name: data.channelName, t: data.channelT });
+      p.channel = data.channel || LOBBY;
       renderPeer(id);
+      applyRouting();
+    };
+    chan = room.makeAction('chan');
+    chan.onMessage = msg => {
+      if (!msg) return;
+      if (msg.op === 'create') addChannel(msg.c);
+      else if (msg.op === 'delete') dropChannel(msg.id);
+      else if (msg.op === 'sync') {
+        (msg.deleted || []).forEach(dropChannel);
+        (msg.channels || []).forEach(addChannel);
+      }
+      renderChannels();
+      applyRouting();
     };
     room.onPeerJoin = id => {
       peer(id);
-      room.addStream(localStream, { target: id });
+      Promise.allSettled([].concat(room.addStream(localStream, { target: id }))).then(applyRouting);
+      chan.send(channelSnapshot(), { target: id });
       info.send(myInfo(), { target: id });
     };
     room.onPeerLeave = id => removePeer(id);
@@ -441,9 +593,8 @@ $('#join').onclick = async () => {
     $('#setup').hidden = true; $('#lobbyActions').hidden = true; $('#invited').hidden = true;
     $('#call').hidden = false;
     $('#quality').disabled = true;
-    renderPeer();
-    $('#empty').hidden = false;
-    $('#roomInfo').textContent = '1 im Raum';
+    meChip.textContent = myInfo().name + ' (du)';
+    renderChannels();
     requestAnimationFrame(meterLoop);
     setInterval(statsTick, 1000);
   } catch (e) {
@@ -479,9 +630,15 @@ async function swapMic() {
     const fresh = await getMic();
     const nt = fresh.getAudioTracks()[0], ot = localStream.getAudioTracks()[0];
     nt.enabled = !muted;
-    if (room.replaceTrack) await Promise.all([].concat(room.replaceTrack(ot, nt)));
+    try { if (room.replaceTrack) await Promise.allSettled([].concat(room.replaceTrack(ot, nt))); } catch {}
+    for (const pc of Object.values(room.getPeers ? room.getPeers() : {})) {
+      for (const s of (pc && pc.getSenders ? pc.getSenders() : [])) {
+        if (s.track === ot) { try { await s.replaceTrack(nt); } catch {} }
+      }
+    }
     localStream.removeTrack(ot); localStream.addTrack(nt); ot.stop();
     connectSelfMeter();
+    applyRouting();
   } catch (e) { alert('Mikrofon konnte nicht gewechselt werden: ' + e.message); }
 }
 $('#mic').onchange = swapMic;
