@@ -21,6 +21,8 @@ export class Settings {
   readonly microphoneId = persisted('microphone', '');
   readonly outputId = persisted('output', '');
   readonly gateDb = persisted('gateDb', GATE_OFF_DB);
+  /** Gain applied to the microphone before the gate, in percent. */
+  readonly micVolume = persisted('micVolume', 100);
   readonly muteKey = persisted<KeyBinding>('muteKey', DEFAULT_MUTE_KEY);
   readonly theme = persisted<ThemeMode>('theme', 'system');
 }

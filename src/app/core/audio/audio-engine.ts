@@ -12,6 +12,12 @@ export type Playback = {
 const HIDDEN_DEVICE_IDS = ['', 'default', 'communications'];
 const RESUME_WAIT_MS = 500;
 
+export const MIC_VOLUME_MAX = 200;
+
+/** Percent to linear gain; a broken stored value falls back to unchanged. */
+const micGain = (percent: number): number =>
+  Number.isFinite(percent) ? Math.min(MIC_VOLUME_MAX, Math.max(0, percent)) / 100 : 1;
+
 /** An `exact` device id that matches no device fails with one of these, depending on the browser. */
 const isMissingDevice = (error: unknown): boolean => {
   const name = (error as { name?: unknown } | null)?.name;
@@ -24,6 +30,7 @@ export class AudioEngine {
 
   private context: AudioContext | null = null;
   private gate: AudioWorkletNode | null = null;
+  private inputGain: GainNode | null = null;
   private input: MediaStreamAudioSourceNode | null = null;
   private rawStream: MediaStream | null = null;
   private testTone = false;
@@ -48,6 +55,11 @@ export class AudioEngine {
       if (!this.sendStream() || !this.gate || !this.context) return;
       const threshold = isGateEnabled(db) ? dbToLinear(db) : 0;
       this.gate.parameters.get('threshold')?.setValueAtTime(threshold, this.context.currentTime);
+    });
+    effect(() => {
+      const gain = micGain(this.settings.micVolume());
+      if (!this.sendStream() || !this.inputGain || !this.context) return;
+      this.inputGain.gain.setTargetAtTime(gain, this.context.currentTime, 0.01);
     });
     effect(() => {
       const muted = this.muted();
@@ -87,6 +99,15 @@ export class AudioEngine {
       const destination = context.createMediaStreamDestination();
       destination.channelCount = 2;
       this.gate.connect(destination);
+
+      // The volume comes before the meter and the gate, so both see what is actually sent.
+      this.inputGain = context.createGain();
+      this.inputGain.gain.value = micGain(this.settings.micVolume());
+      this.inputGain.connect(this.gate);
+      const analyser = context.createAnalyser();
+      analyser.fftSize = 1024;
+      this.inputGain.connect(analyser);
+      this.selfAnalyser.set(analyser);
 
       this.connectInput(await this.openInput());
       this.sendStream.set(destination.stream);
@@ -158,6 +179,7 @@ export class AudioEngine {
     await this.context?.close().catch(() => undefined);
     this.context = null;
     this.gate = null;
+    this.inputGain = null;
     this.input = null;
     this.rawStream = null;
     this.sendStream.set(null);
@@ -207,15 +229,11 @@ export class AudioEngine {
   }
 
   private connectInput(stream: MediaStream): void {
-    if (!this.context || !this.gate) return;
+    if (!this.context || !this.inputGain) return;
     this.input?.disconnect();
     this.rawStream = stream;
     this.input = this.context.createMediaStreamSource(stream);
-    const analyser = this.context.createAnalyser();
-    analyser.fftSize = 1024;
-    this.input.connect(analyser);
-    this.input.connect(this.gate);
-    this.selfAnalyser.set(analyser);
+    this.input.connect(this.inputGain);
   }
 
   private createTestTone(context: AudioContext): MediaStream {

@@ -47,6 +47,21 @@
     </mat-select>
   </mat-form-field>
 
+  <div class="volume">
+    <div class="row">
+      <span class="label">{{ 'devices.micVolume' | translate }}</span>
+      <span class="value">{{ settings.micVolume() }} %</span>
+    </div>
+    <mat-slider min="0" [max]="micVolumeMax" step="5">
+      <input
+        matSliderThumb
+        [(ngModel)]="settings.micVolume"
+        [attr.aria-label]="'devices.micVolume' | translate"
+        [attr.aria-valuetext]="settings.micVolume() + ' %'"
+      />
+    </mat-slider>
+  </div>
+
   <div class="gate">
     <div class="row">
       <span class="label" [matTooltip]="'self.gateTooltip' | translate">{{

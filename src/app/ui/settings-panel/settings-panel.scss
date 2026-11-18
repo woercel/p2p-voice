@@ -58,6 +58,17 @@ mat-form-field {
   font-variant-numeric: tabular-nums;
 }
 
+.volume {
+  display: flex;
+  flex-direction: column;
+
+  // Same inset as the gate meter below, so both tracks line up.
+  mat-slider {
+    width: auto;
+    margin: 0 4px;
+  }
+}
+
 .gate {
   display: flex;
   flex-direction: column;

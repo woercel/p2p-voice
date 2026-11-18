@@ -62,7 +62,7 @@
   },
   "self": {
     "youShort": "du",
-    "gate": "Mindestlautstärke",
+    "gate": "Sprachschwelle",
     "gateTooltip": "Unter diesem Pegel wird nichts gesendet",
     "gateOff": "Aus",
     "gateOffShort": "aus",
@@ -81,6 +81,7 @@
   "devices": {
     "microphone": "Aufnahme",
     "defaultMicrophone": "Standard-Mikrofon",
+    "micVolume": "Mikrofonlautstärke",
     "output": "Ausgabe",
     "defaultOutput": "Standard-Ausgabe",
     "headphoneMode": "Kopfhörer-Modus (rohes Signal)",
