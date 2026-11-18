@@ -19,11 +19,6 @@ body {
   min-height: 100%;
 }
 
-.theme-switching,
-.theme-switching * {
-  transition: none !important;
-}
-
 body {
   margin: 0;
   background: var(--mat-sys-surface);
