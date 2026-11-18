@@ -1,0 +1,87 @@
+:host {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  height: 116px;
+  padding: 12px 8px 14px;
+  box-sizing: border-box;
+  border-radius: var(--mat-sys-corner-large);
+  background: var(--mat-sys-surface-container-high);
+  overflow: hidden;
+  transition:
+    background-color 150ms,
+    opacity 150ms;
+}
+
+:host(.speaking) {
+  background: var(--mat-sys-primary-container);
+}
+
+:host(.away) {
+  opacity: 0.5;
+}
+
+.avatar {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: var(--mat-sys-surface-container-highest);
+  color: var(--mat-sys-on-surface-variant);
+  font: var(--mat-sys-title-medium);
+  transition:
+    background-color 150ms,
+    color 150ms,
+    box-shadow 150ms;
+}
+
+:host(.speaking) .avatar {
+  background: var(--mat-sys-primary);
+  color: var(--mat-sys-on-primary);
+  box-shadow:
+    0 0 0 3px var(--mat-sys-primary-container),
+    0 0 0 5px var(--mat-sys-primary);
+}
+
+.name {
+  max-width: 100%;
+  font: var(--mat-sys-label-large);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.you {
+  position: absolute;
+  top: 8px;
+  left: 10px;
+  font: var(--mat-sys-label-small);
+  color: var(--mat-sys-on-surface-variant);
+}
+
+.muted {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 18px;
+  height: 18px;
+  font-size: 18px;
+  color: var(--mat-sys-error);
+}
+
+.meter {
+  position: absolute;
+  left: 14px;
+  right: 14px;
+  bottom: 8px;
+  height: 3px;
+  background: transparent;
+}
+
+:host(.away) .meter {
+  visibility: hidden;
+}

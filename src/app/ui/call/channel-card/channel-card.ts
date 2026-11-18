@@ -1,10 +1,10 @@
 import { ChangeDetectionStrategy, Component, inject, input, output } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
-import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { AudioEngine } from '../../../core/audio/audio-engine';
 import { Peer } from '../../../core/net/room';
+import { MemberTile } from '../member-tile/member-tile';
 import { PeerTile } from '../peer-tile/peer-tile';
 
 export type ChannelView = {
@@ -16,12 +16,21 @@ export type ChannelView = {
   deletable: boolean;
 };
 
+/** A channel surface; clicking anywhere on it moves you there. */
 @Component({
   selector: 'app-channel-card',
-  imports: [MatButtonModule, MatCardModule, MatIconModule, MatTooltipModule, PeerTile],
+  imports: [MatButtonModule, MatIconModule, MatTooltipModule, MemberTile, PeerTile],
   templateUrl: './channel-card.html',
   styleUrl: './channel-card.scss',
-  host: { '[class.here]': 'channel().here' },
+  host: {
+    '[class.here]': 'channel().here',
+    '[attr.role]': 'channel().here ? null : "button"',
+    '[attr.tabindex]': 'channel().here ? null : 0',
+    '[attr.aria-label]': 'channel().here ? null : joinLabel + " " + channel().name',
+    '(click)': 'join($event)',
+    '(keydown.enter)': 'join($event)',
+    '(keydown.space)': 'join($event)',
+  },
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ChannelCard {
@@ -31,4 +40,16 @@ export class ChannelCard {
   readonly remove = output<void>();
 
   protected readonly audio = inject(AudioEngine);
+  protected readonly joinLabel = $localize`:@@channel.join:Join`;
+
+  protected join(event: Event): void {
+    if (this.channel().here) return;
+    event.preventDefault();
+    this.enter.emit();
+  }
+
+  protected removeChannel(event: Event): void {
+    event.stopPropagation();
+    this.remove.emit();
+  }
 }

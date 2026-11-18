@@ -27,7 +27,7 @@ describe('Lobby', () => {
     roomInput.dispatchEvent(new Event('input'));
     await fixture.whenStable();
 
-    const join = element.querySelector<HTMLButtonElement>('mat-card-actions button');
+    const join = element.querySelector<HTMLButtonElement>('button.join');
     expect(join?.disabled).toBe(true);
   });
 });

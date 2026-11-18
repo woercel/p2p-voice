@@ -1,31 +1,27 @@
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
-import { MatCardModule } from '@angular/material/card';
 import { MatExpansionModule } from '@angular/material/expansion';
 import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSelectModule } from '@angular/material/select';
 import { RENDEZVOUS, Rendezvous, inviteHash, parseInvite, randomId } from '../../core/invite';
 import { RoomService } from '../../core/net/room';
-import { BITRATES, Settings } from '../../core/settings';
-import { DeviceSettings } from '../device-settings/device-settings';
+import { Settings } from '../../core/settings';
+import { Logo } from '../logo/logo';
 
 @Component({
   selector: 'app-lobby',
   imports: [
     FormsModule,
     MatButtonModule,
-    MatCardModule,
     MatExpansionModule,
     MatFormFieldModule,
-    MatIconModule,
     MatInputModule,
     MatProgressSpinnerModule,
     MatSelectModule,
-    DeviceSettings,
+    Logo,
   ],
   templateUrl: './lobby.html',
   styleUrl: './lobby.scss',
@@ -43,7 +39,6 @@ export class Lobby {
   protected readonly joining = computed(() => this.room.status() === 'joining');
   protected readonly error = signal<string | null>(null);
 
-  protected readonly bitrates = BITRATES.map((value) => ({ value, label: bitrateLabel(value) }));
   protected readonly rendezvous = RENDEZVOUS.map((value) => ({
     value,
     label: rendezvousLabel(value),
@@ -60,20 +55,6 @@ export class Lobby {
     } catch (error) {
       this.error.set(joinErrorMessage(error));
     }
-  }
-}
-
-function bitrateLabel(bitrate: number): string {
-  const kbps = bitrate / 1000;
-  switch (bitrate) {
-    case 510_000:
-      return $localize`:@@quality.max:${kbps}:kbps: kbit/s – maximum`;
-    case 256_000:
-      return $localize`:@@quality.veryHigh:${kbps}:kbps: kbit/s – very high`;
-    case 128_000:
-      return $localize`:@@quality.high:${kbps}:kbps: kbit/s – high, transparent`;
-    default:
-      return $localize`:@@quality.standard:${kbps}:kbps: kbit/s – typical voice chat`;
   }
 }
 

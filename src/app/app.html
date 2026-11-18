@@ -1,52 +1,41 @@
-<mat-toolbar>
-  <app-logo [animated]="room.status() === 'joining'" />
-  <span class="title">P2P Voice</span>
-  <span class="spacer"></span>
+<mat-sidenav-container>
+  <mat-sidenav #settings position="end" mode="over" autoFocus="false">
+    <app-settings-panel (close)="settings.close()" />
+  </mat-sidenav>
 
-  <button
-    matIconButton
-    [matMenuTriggerFor]="languageMenu"
-    [disabled]="room.status() !== 'idle'"
-    matTooltip="Language"
-    i18n-matTooltip="@@toolbar.language"
-    aria-label="Language"
-    i18n-aria-label="@@toolbar.language"
-  >
-    <mat-icon>translate</mat-icon>
-  </button>
-  <mat-menu #languageMenu="matMenu">
-    @for (option of languages; track option.value) {
-      <button mat-menu-item (click)="switchLanguage(option.value)">
-        <mat-icon>{{ option.value === language ? 'check' : '' }}</mat-icon>
-        <span>{{ option.label }}</span>
+  <mat-sidenav-content>
+    <header>
+      @if (room.status() === 'joined') {
+        <app-logo />
+        <span class="title">P2P Voice</span>
+      }
+      <span class="spacer"></span>
+
+      @if (room.status() === 'joined') {
+        <button matButton="tonal" class="invite" (click)="copyInvite()">
+          <mat-icon>link</mat-icon>
+          <span i18n="@@toolbar.copyInvite">Copy link</span>
+        </button>
+      }
+
+      <button
+        matIconButton
+        (click)="settings.toggle()"
+        matTooltip="Settings"
+        i18n-matTooltip="@@toolbar.settings"
+        aria-label="Settings"
+        i18n-aria-label="@@toolbar.settings"
+      >
+        <mat-icon>tune</mat-icon>
       </button>
-    }
-  </mat-menu>
+    </header>
 
-  <button
-    matIconButton
-    [matMenuTriggerFor]="themeMenu"
-    matTooltip="Theme"
-    i18n-matTooltip="@@toolbar.theme"
-    aria-label="Theme"
-    i18n-aria-label="@@toolbar.theme"
-  >
-    <mat-icon>{{ themeIcon() }}</mat-icon>
-  </button>
-  <mat-menu #themeMenu="matMenu">
-    @for (option of themes; track option.value) {
-      <button mat-menu-item (click)="theme.mode.set(option.value)">
-        <mat-icon>{{ option.icon }}</mat-icon>
-        <span>{{ option.label }}</span>
-      </button>
-    }
-  </mat-menu>
-</mat-toolbar>
-
-<main>
-  @if (room.status() === 'joined') {
-    <app-call />
-  } @else {
-    <app-lobby />
-  }
-</main>
+    <main>
+      @if (room.status() === 'joined') {
+        <app-call />
+      } @else {
+        <app-lobby />
+      }
+    </main>
+  </mat-sidenav-content>
+</mat-sidenav-container>

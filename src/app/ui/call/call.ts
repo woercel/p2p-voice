@@ -1,57 +1,41 @@
-import { Clipboard } from '@angular/cdk/clipboard';
 import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
-import { MatCardModule } from '@angular/material/card';
 import { MatDialog } from '@angular/material/dialog';
-import { MatExpansionModule } from '@angular/material/expansion';
-import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
-import { MatInputModule } from '@angular/material/input';
-import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { AudioEngine } from '../../core/audio/audio-engine';
 import { Channel, LOBBY, resolveChannel } from '../../core/channels/channel-state';
+import { MuteHotkey } from '../../core/hotkey/mute-hotkey';
 import { channelName } from '../../core/i18n/labels';
-import { inviteHash } from '../../core/invite';
 import { RoomService } from '../../core/net/room';
 import { Settings } from '../../core/settings';
 import { ConfirmData, ConfirmDialog } from '../confirm-dialog/confirm-dialog';
-import { DeviceSettings } from '../device-settings/device-settings';
 import { ChannelCard, ChannelView } from './channel-card/channel-card';
-import { SelfPanel } from './self-panel/self-panel';
 
 @Component({
   selector: 'app-call',
-  imports: [
-    MatButtonModule,
-    MatCardModule,
-    MatExpansionModule,
-    MatFormFieldModule,
-    MatIconModule,
-    MatInputModule,
-    MatTooltipModule,
-    ChannelCard,
-    DeviceSettings,
-    SelfPanel,
-  ],
+  imports: [MatButtonModule, MatIconModule, MatTooltipModule, ChannelCard],
   templateUrl: './call.html',
   styleUrl: './call.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class Call {
   protected readonly room = inject(RoomService);
+  protected readonly audio = inject(AudioEngine);
+  protected readonly hotkey = inject(MuteHotkey);
   private readonly settings = inject(Settings);
-  private readonly clipboard = inject(Clipboard);
-  private readonly snackBar = inject(MatSnackBar);
   private readonly dialog = inject(MatDialog);
-
-  protected readonly inviteLink = computed(() => {
-    const invite = this.room.invite();
-    return invite ? `${location.origin}${location.pathname}#${inviteHash(invite)}` : '';
-  });
 
   protected readonly selfName = computed(
     () => this.settings.name().trim() || $localize`:@@peer.anonymous:Anonymous`,
   );
+
+  protected readonly muteLabel = computed(() => {
+    const key = this.hotkey.label();
+    return this.audio.muted()
+      ? $localize`:@@dock.unmute:Unmute (${key}:key:)`
+      : $localize`:@@dock.mute:Mute (${key}:key:)`;
+  });
 
   protected readonly channels = computed<ChannelView[]>(() => {
     const state = this.room.channelState();
@@ -73,9 +57,8 @@ export class Call {
     });
   });
 
-  protected copyInvite(): void {
-    this.clipboard.copy(this.inviteLink());
-    this.snackBar.open($localize`:@@call.copied:Invite link copied`, undefined, { duration: 2000 });
+  protected toggleMute(): void {
+    this.audio.muted.update((muted) => !muted);
   }
 
   protected deleteGroup(channel: ChannelView): void {

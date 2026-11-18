@@ -1,37 +1,39 @@
 :host {
-  display: block;
-}
-
-.banner {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin-bottom: 16px;
-  padding: 12px 16px;
-  border-radius: var(--mat-sys-corner-medium);
-  background: var(--mat-sys-secondary-container);
-  color: var(--mat-sys-on-secondary-container);
-}
-
-mat-card-content {
   display: flex;
   flex-direction: column;
+  align-items: stretch;
   gap: 16px;
-  padding-top: 16px;
+  max-width: 380px;
+  margin: 8vh auto 0;
+  text-align: center;
 }
 
-.fields {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  gap: 12px;
+app-logo {
+  align-self: center;
+  width: 64px;
+  height: 64px;
+  margin-bottom: 8px;
 }
 
-.room-settings .fields {
-  margin-bottom: 12px;
+h1 {
+  margin: 0;
+  font: var(--mat-sys-headline-small);
 }
 
-.full {
-  width: 100%;
+.subtitle {
+  margin: -8px 0 16px;
+  font: var(--mat-sys-body-medium);
+  color: var(--mat-sys-on-surface-variant);
+}
+
+.join {
+  height: 48px;
+}
+
+mat-spinner {
+  display: inline-block;
+  margin-right: 8px;
+  vertical-align: middle;
 }
 
 .error {
@@ -39,7 +41,31 @@ mat-card-content {
   color: var(--mat-sys-error);
 }
 
-mat-spinner {
-  display: inline-block;
-  margin-right: 8px;
+.room-settings {
+  margin-top: 16px;
+  text-align: left;
+  --mat-expansion-container-background-color: transparent;
+  --mat-expansion-container-elevation-shadow: none;
+  --mat-expansion-header-text-color: var(--mat-sys-on-surface-variant);
+
+  mat-form-field {
+    width: 100%;
+    margin-top: 8px;
+  }
+}
+
+// The panel's paddings have no theme tokens.
+:host ::ng-deep .room-settings {
+  .mat-expansion-panel-header,
+  .mat-expansion-panel-body {
+    padding: 0;
+  }
+
+  .mat-expansion-panel-header {
+    justify-content: center;
+  }
+
+  .mat-content {
+    flex: 0 1 auto;
+  }
 }

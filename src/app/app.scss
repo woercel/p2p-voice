@@ -1,19 +1,38 @@
 :host {
   display: block;
-  min-height: 100dvh;
 }
 
-mat-toolbar {
+mat-sidenav-container {
+  min-height: 100dvh;
+  background: transparent;
+}
+
+mat-sidenav {
+  width: min(360px, 100vw);
+  border-radius: 0;
+  background: var(--mat-sys-surface-container-low);
+}
+
+header {
   position: sticky;
   top: 0;
   z-index: 2;
-  gap: 4px;
-  background: var(--mat-sys-surface-container);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 64px;
+  padding: 0 12px 0 20px;
+  background: var(--mat-sys-surface);
+}
+
+app-logo {
+  width: 28px;
+  height: 28px;
 }
 
 .title {
-  margin-left: 10px;
-  font: var(--mat-sys-title-large);
+  margin-left: 6px;
+  font: var(--mat-sys-title-medium);
 }
 
 .spacer {
@@ -21,7 +40,13 @@ mat-toolbar {
 }
 
 main {
-  max-width: 760px;
+  max-width: 1200px;
   margin: 0 auto;
-  padding: 24px 16px 48px;
+  padding: 8px 20px 120px;
+}
+
+@media (max-width: 480px) {
+  .invite span {
+    display: none;
+  }
 }

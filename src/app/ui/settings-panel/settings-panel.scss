@@ -1,0 +1,95 @@
+:host {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 8px 16px 24px 20px;
+  overflow-x: hidden;
+}
+
+.head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 56px;
+
+  h2 {
+    margin: 0;
+    font: var(--mat-sys-title-large);
+  }
+}
+
+section {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+mat-form-field {
+  width: 100%;
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: 40px;
+}
+
+.label {
+  font: var(--mat-sys-body-large);
+}
+
+.value {
+  font: var(--mat-sys-label-large);
+  color: var(--mat-sys-on-surface-variant);
+  font-variant-numeric: tabular-nums;
+}
+
+.gate {
+  display: flex;
+  flex-direction: column;
+
+  .meter {
+    margin: 8px 8px 0;
+  }
+
+  mat-slider {
+    margin: 0;
+  }
+}
+
+.threshold {
+  position: absolute;
+  top: -3px;
+  bottom: -3px;
+  width: 2px;
+  background: var(--mat-sys-on-surface);
+}
+
+.info {
+  color: var(--mat-sys-on-surface-variant);
+  font-size: 20px;
+  width: 20px;
+  height: 20px;
+  cursor: help;
+}
+
+.more {
+  margin-top: 8px;
+  --mat-expansion-container-background-color: transparent;
+  --mat-expansion-container-elevation-shadow: none;
+  --mat-expansion-header-text-color: var(--mat-sys-on-surface-variant);
+
+  section {
+    padding-top: 8px;
+  }
+}
+
+// The panel's paddings have no theme tokens.
+:host ::ng-deep .more {
+  .mat-expansion-panel-header,
+  .mat-expansion-panel-body {
+    padding: 0;
+  }
+}

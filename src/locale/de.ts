@@ -1,6 +1,8 @@
 export const DE: Record<string, string> = {
   'toolbar.language': 'Sprache',
   'toolbar.theme': 'Design',
+  'toolbar.copyInvite': 'Link kopieren',
+  'toolbar.settings': 'Einstellungen',
   'theme.system': 'System',
   'theme.light': 'Hell',
   'theme.dark': 'Dunkel',
@@ -17,14 +19,10 @@ export const DE: Record<string, string> = {
 
   'channel.lobby': 'Lobby',
   'channel.group': 'Gruppe {$number}',
-  'channel.count': '{VAR_PLURAL, plural, =1 {1 Person} other {{INTERPOLATION} Personen}}',
-  'channel.here': 'Du bist hier',
   'channel.join': 'Beitreten',
   'channel.delete': 'Gruppe löschen',
-  'channel.empty': 'Leer',
 
   'peer.anonymous': 'Anonym',
-  'peer.muted': 'stumm',
   'peer.connecting': 'Verbinde…',
 
   'stats.loss': '{$loss} % Verlust',
@@ -32,30 +30,30 @@ export const DE: Record<string, string> = {
   'stats.direct': 'direkt',
   'stats.directIpv6': 'direkt (IPv6)',
 
-  'call.inviteLink': 'Einladungslink',
-  'call.copy': 'Kopieren',
   'call.copied': 'Einladungslink kopiert',
-  'call.devices': 'Audiogeräte',
   'call.alone': 'Noch niemand da. Schick den Einladungslink rum.',
   'call.newGroup': 'Neue Gruppe',
   'call.deleteTitle': '{$name} löschen?',
   'call.deleteMessage': 'Alle darin landen wieder in der Lobby.',
   'call.deleteConfirm': 'Löschen',
 
-  'self.you': '(du)',
-  'self.muted': 'Stumm',
-  'self.live': 'Mikro an',
+  'dock.mute': 'Stumm schalten ({$key})',
+  'dock.unmute': 'Stumm aus ({$key})',
+
+  'self.youShort': 'du',
   'self.gate': 'Sprach-Schwelle',
   'self.gateTooltip': 'Unter diesem Pegel wird nichts gesendet',
   'self.gateOff': 'Aus',
   'self.gateOffShort': 'aus',
   'self.muteKey': 'Stumm-Taste',
   'self.pressKey': 'Taste drücken… (Esc bricht ab)',
-  'self.changeKey': 'Ändern',
-  'self.mute': 'Stumm',
-  'self.unmute': 'Stumm aus',
-  'self.total': '{VAR_PLURAL, plural, =1 {Nur du im Raum} other {{INTERPOLATION} im Raum}}',
   'self.leave': 'Verlassen',
+
+  'settings.title': 'Einstellungen',
+  'settings.close': 'Schließen',
+  'settings.more': 'Weitere',
+  'settings.qualityHint': 'Gilt für neue Verbindungen',
+  'settings.languageHint': 'Nur außerhalb eines Raums änderbar',
 
   'dialog.cancel': 'Abbrechen',
 
@@ -68,7 +66,7 @@ export const DE: Record<string, string> = {
     'Schaltet Echo-Unterdrückung, Rauschfilter und Auto-Lautstärke aus – für den saubersten Klang. Mit Lautsprechern ausschalten, sonst hören sich die anderen selbst.',
   'devices.reopenFailed': 'Das Mikrofon konnte nicht geöffnet werden.',
 
-  'lobby.invited': 'Du wurdest in einen Raum eingeladen. Namen eingeben und beitreten.',
+  'lobby.invitedTitle': 'Du wurdest eingeladen',
   'lobby.title': 'Raum beitreten',
   'lobby.subtitle': 'Von Browser zu Browser, Opus bis 510 kbit/s Stereo, ohne Accounts.',
   'lobby.name': 'Dein Name',

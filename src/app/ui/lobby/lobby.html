@@ -1,80 +1,58 @@
+<app-logo [animated]="joining()" />
+
 @if (invited) {
-  <div class="banner">
-    <mat-icon>mail</mat-icon>
-    <span i18n="@@lobby.invited">You've been invited to a room. Enter your name and join.</span>
-  </div>
+  <h1 i18n="@@lobby.invitedTitle">You've been invited</h1>
+} @else {
+  <h1 i18n="@@lobby.title">Join a room</h1>
+}
+<p class="subtitle" i18n="@@lobby.subtitle">
+  Browser to browser, Opus up to 510 kbit/s stereo, no accounts.
+</p>
+
+<mat-form-field>
+  <mat-label i18n="@@lobby.name">Your name</mat-label>
+  <input matInput maxlength="32" [(ngModel)]="settings.name" (keydown.enter)="join()" />
+</mat-form-field>
+
+<button
+  matButton="filled"
+  class="join"
+  (click)="join()"
+  [disabled]="joining() || !roomName().trim()"
+>
+  @if (joining()) {
+    <mat-spinner diameter="18" />
+  }
+  <span i18n="@@lobby.join">Join room</span>
+</button>
+
+@if (error(); as message) {
+  <p class="error" role="alert">{{ message }}</p>
 }
 
-<mat-card appearance="outlined">
-  <mat-card-header>
-    <mat-card-title i18n="@@lobby.title">Join a room</mat-card-title>
-    <mat-card-subtitle i18n="@@lobby.subtitle"
-      >Browser to browser, Opus up to 510 kbit/s stereo, no accounts.</mat-card-subtitle
-    >
-  </mat-card-header>
+<mat-expansion-panel class="room-settings">
+  <mat-expansion-panel-header>
+    <mat-panel-title i18n="@@lobby.roomSettings">Room settings</mat-panel-title>
+  </mat-expansion-panel-header>
 
-  <mat-card-content>
-    <div class="fields">
-      <mat-form-field>
-        <mat-label i18n="@@lobby.name">Your name</mat-label>
-        <input matInput maxlength="32" [(ngModel)]="settings.name" (keydown.enter)="join()" />
-      </mat-form-field>
-
-      <mat-form-field>
-        <mat-label i18n="@@lobby.quality">Quality you send</mat-label>
-        <mat-select [(ngModel)]="settings.bitrate">
-          @for (option of bitrates; track option.value) {
-            <mat-option [value]="option.value">{{ option.label }}</mat-option>
-          }
-        </mat-select>
-      </mat-form-field>
-    </div>
-
-    <mat-expansion-panel class="room-settings">
-      <mat-expansion-panel-header>
-        <mat-panel-title i18n="@@lobby.roomSettings">Room settings</mat-panel-title>
-      </mat-expansion-panel-header>
-
-      <div class="fields">
-        <mat-form-field>
-          <mat-label i18n="@@lobby.room">Room</mat-label>
-          <input matInput spellcheck="false" [(ngModel)]="roomName" />
-        </mat-form-field>
-        <mat-form-field>
-          <mat-label i18n="@@lobby.password">Password</mat-label>
-          <input matInput spellcheck="false" [(ngModel)]="password" />
-        </mat-form-field>
-      </div>
-
-      <mat-form-field class="full">
-        <mat-label i18n="@@lobby.rendezvous">Rendezvous</mat-label>
-        <mat-select [(ngModel)]="via">
-          @for (option of rendezvous; track option.value) {
-            <mat-option [value]="option.value">{{ option.label }}</mat-option>
-          }
-        </mat-select>
-        <mat-hint i18n="@@lobby.rendezvousHint"
-          >Only used to find each other – audio always flows directly. Everyone in a room needs the
-          same one; it is part of the invite link.</mat-hint
-        >
-      </mat-form-field>
-    </mat-expansion-panel>
-
-    <app-device-settings />
-
-    @if (error(); as message) {
-      <p class="error" role="alert">{{ message }}</p>
-    }
-  </mat-card-content>
-
-  <mat-card-actions align="end">
-    <button matButton="filled" (click)="join()" [disabled]="joining() || !roomName().trim()">
-      @if (joining()) {
-        <mat-spinner diameter="18" />
-      } @else {
-        <mat-icon>headset_mic</mat-icon>
+  <mat-form-field>
+    <mat-label i18n="@@lobby.room">Room</mat-label>
+    <input matInput spellcheck="false" [(ngModel)]="roomName" />
+  </mat-form-field>
+  <mat-form-field>
+    <mat-label i18n="@@lobby.password">Password</mat-label>
+    <input matInput spellcheck="false" [(ngModel)]="password" />
+  </mat-form-field>
+  <mat-form-field>
+    <mat-label i18n="@@lobby.rendezvous">Rendezvous</mat-label>
+    <mat-select [(ngModel)]="via">
+      @for (option of rendezvous; track option.value) {
+        <mat-option [value]="option.value">{{ option.label }}</mat-option>
       }
-      <span i18n="@@lobby.join">Join room</span>
-    </button>
-  </mat-card-actions>
-</mat-card>
+    </mat-select>
+    <mat-hint i18n="@@lobby.rendezvousHint"
+      >Only used to find each other – audio always flows directly. Everyone in a room needs the same
+      one; it is part of the invite link.</mat-hint
+    >
+  </mat-form-field>
+</mat-expansion-panel>

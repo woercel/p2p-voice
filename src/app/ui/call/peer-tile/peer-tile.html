@@ -1,24 +1,29 @@
-<div class="head">
-  <mat-icon class="avatar">{{ peer().muted ? 'mic_off' : 'person' }}</mat-icon>
-  <div class="text">
-    <span class="name">{{ name() }}</span>
-    <span class="details">{{ details() }}</span>
-  </div>
-  @if (peer().muted) {
-    <span class="badge muted" i18n="@@peer.muted">muted</span>
-  }
-</div>
+@if (away()) {
+  <app-member-tile [name]="name()" [muted]="peer().muted" [away]="true" />
+} @else {
+  <button class="trigger" [matMenuTriggerFor]="menu" (click)="$event.stopPropagation()">
+    <app-member-tile
+      [name]="name()"
+      [muted]="peer().muted"
+      [speaking]="speaking()"
+      [analyser]="analyser()"
+      (levelSpeaking)="speaking.set($event)"
+    />
+  </button>
 
-<div
-  class="meter"
-  [appLevelMeter]="away() ? null : analyser()"
-  (speakingChange)="speaking.set($event)"
-></div>
-
-<div class="volume">
-  <mat-icon>volume_up</mat-icon>
-  <mat-slider min="0" max="200" step="5">
-    <input matSliderThumb [ngModel]="peer().volume" (ngModelChange)="setVolume($event)" />
-  </mat-slider>
-  <span class="value">{{ peer().volume }} %</span>
-</div>
+  <mat-menu #menu="matMenu" class="peer-menu">
+    <div class="menu" (click)="$event.stopPropagation()" (keydown)="$event.stopPropagation()">
+      <div class="menu-name">{{ name() }}</div>
+      @if (details().length) {
+        <div class="stats">{{ details().join(' · ') }}</div>
+      }
+      <div class="volume">
+        <mat-icon>{{ peer().volume === 0 ? 'volume_off' : 'volume_up' }}</mat-icon>
+        <mat-slider min="0" max="200" step="5">
+          <input matSliderThumb [ngModel]="peer().volume" (ngModelChange)="setVolume($event)" />
+        </mat-slider>
+        <span class="value">{{ peer().volume }} %</span>
+      </div>
+    </div>
+  </mat-menu>
+}

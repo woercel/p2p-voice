@@ -1,21 +1,18 @@
 import { ChangeDetectionStrategy, Component, computed, inject, input, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MatIconModule } from '@angular/material/icon';
+import { MatMenuModule } from '@angular/material/menu';
 import { MatSliderModule } from '@angular/material/slider';
 import { currentLanguage } from '../../../core/i18n/language';
 import { Peer, RoomService } from '../../../core/net/room';
 import { PeerStats } from '../../../core/net/peer-stats';
-import { LevelMeter } from '../../level-meter/level-meter';
+import { MemberTile } from '../member-tile/member-tile';
 
 @Component({
   selector: 'app-peer-tile',
-  imports: [FormsModule, MatIconModule, MatSliderModule, LevelMeter],
+  imports: [FormsModule, MatIconModule, MatMenuModule, MatSliderModule, MemberTile],
   templateUrl: './peer-tile.html',
   styleUrl: './peer-tile.scss',
-  host: {
-    '[class.speaking]': 'speaking() && !away()',
-    '[class.away]': 'away()',
-  },
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class PeerTile {
@@ -41,8 +38,8 @@ export class PeerTile {
   }
 }
 
-function describeStats(stats: PeerStats | null): string {
-  if (!stats) return '';
+function describeStats(stats: PeerStats | null): string[] {
+  if (!stats) return [];
   const parts: string[] = [];
   if (stats.inKbps !== null) parts.push(`↓ ${stats.inKbps} kbit/s`);
   if (stats.outKbps !== null) parts.push(`↑ ${stats.outKbps} kbit/s`);
@@ -54,5 +51,5 @@ function describeStats(stats: PeerStats | null): string {
   if (stats.route === 'relay') parts.push($localize`:@@stats.relay:via relay`);
   if (stats.route === 'direct') parts.push($localize`:@@stats.direct:direct`);
   if (stats.route === 'direct-ipv6') parts.push($localize`:@@stats.directIpv6:direct (IPv6)`);
-  return parts.join(' · ');
+  return parts;
 }
