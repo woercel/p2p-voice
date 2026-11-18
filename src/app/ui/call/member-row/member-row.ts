@@ -1,6 +1,7 @@
 import { ChangeDetectionStrategy, Component, computed, input, output } from '@angular/core';
 import { MatIconModule } from '@angular/material/icon';
 import { TranslatePipe } from '@ngx-translate/core';
+import { avatarUri } from '../../../core/avatar';
 import { LevelMeter } from '../../level-meter/level-meter';
 
 /** One person in a channel. Looks the same for yourself and everybody else. */
@@ -8,7 +9,7 @@ import { LevelMeter } from '../../level-meter/level-meter';
   selector: 'app-member-row',
   imports: [MatIconModule, TranslatePipe, LevelMeter],
   template: `
-    <span class="avatar">{{ initial() }}</span>
+    <img class="avatar" [src]="avatar()" alt="" />
     <span class="name">
       {{ name() }}
       @if (self()) {
@@ -47,5 +48,5 @@ export class MemberRow {
   readonly belowDb = input<number | null>(null);
   readonly levelSpeaking = output<boolean>();
 
-  protected readonly initial = computed(() => [...this.name().trim()][0]?.toUpperCase() ?? '?');
+  protected readonly avatar = computed(() => avatarUri(this.name().trim()));
 }
