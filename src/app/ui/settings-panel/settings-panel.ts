@@ -2,7 +2,6 @@ import { ChangeDetectionStrategy, Component, computed, inject, output } from '@a
 import { FormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatButtonToggleModule } from '@angular/material/button-toggle';
-import { MatExpansionModule } from '@angular/material/expansion';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
@@ -25,7 +24,6 @@ import { LevelMeter } from '../level-meter/level-meter';
     FormsModule,
     MatButtonModule,
     MatButtonToggleModule,
-    MatExpansionModule,
     MatFormFieldModule,
     MatIconModule,
     MatInputModule,

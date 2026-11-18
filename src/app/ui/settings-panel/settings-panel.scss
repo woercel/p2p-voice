@@ -22,6 +22,12 @@ section {
   display: flex;
   flex-direction: column;
   gap: 16px;
+
+  & + & {
+    margin-top: 8px;
+    padding-top: 24px;
+    border-top: 1px solid var(--mat-sys-outline-variant);
+  }
 }
 
 mat-form-field {
@@ -73,23 +79,4 @@ mat-form-field {
   width: 20px;
   height: 20px;
   cursor: help;
-}
-
-.more {
-  margin-top: 8px;
-  --mat-expansion-container-background-color: transparent;
-  --mat-expansion-container-elevation-shadow: none;
-  --mat-expansion-header-text-color: var(--mat-sys-on-surface-variant);
-
-  section {
-    padding-top: 8px;
-  }
-}
-
-// The panel's paddings have no theme tokens.
-:host ::ng-deep .more {
-  .mat-expansion-panel-header,
-  .mat-expansion-panel-body {
-    padding: 0;
-  }
 }

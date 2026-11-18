@@ -17,7 +17,33 @@
   </mat-form-field>
 
   <mat-form-field>
-    <mat-label i18n="@@devices.microphone">Microphone</mat-label>
+    <mat-label i18n="@@lobby.quality">Quality you send</mat-label>
+    <mat-select [(ngModel)]="settings.bitrate">
+      @for (option of bitrates; track option.value) {
+        <mat-option [value]="option.value">{{ option.label }}</mat-option>
+      }
+    </mat-select>
+    @if (joined()) {
+      <mat-hint i18n="@@settings.qualityHint">Applies to new connections</mat-hint>
+    }
+  </mat-form-field>
+</section>
+
+<section>
+  @if (audio.canSelectOutput) {
+    <mat-form-field>
+      <mat-label i18n="@@devices.output">Output</mat-label>
+      <mat-select [(ngModel)]="settings.outputId">
+        <mat-option value="" i18n="@@devices.defaultOutput">Default output</mat-option>
+        @for (device of audio.outputs(); track device.deviceId) {
+          <mat-option [value]="device.deviceId">{{ device.label || device.deviceId }}</mat-option>
+        }
+      </mat-select>
+    </mat-form-field>
+  }
+
+  <mat-form-field>
+    <mat-label i18n="@@devices.microphone">Input</mat-label>
     <mat-select [ngModel]="settings.microphoneId()" (ngModelChange)="changeMicrophone($event)">
       <mat-option value="" i18n="@@devices.defaultMicrophone">Default microphone</mat-option>
       @for (device of audio.inputs(); track device.deviceId) {
@@ -81,69 +107,35 @@
   </div>
 </section>
 
-<mat-expansion-panel class="more">
-  <mat-expansion-panel-header>
-    <mat-panel-title i18n="@@settings.more">More</mat-panel-title>
-  </mat-expansion-panel-header>
+<section>
+  <div class="row">
+    <span class="label" i18n="@@toolbar.theme">Theme</span>
+    <mat-button-toggle-group
+      hideSingleSelectionIndicator
+      [ngModel]="settings.theme()"
+      (ngModelChange)="settings.theme.set($event)"
+    >
+      @for (option of themes; track option.value) {
+        <mat-button-toggle
+          [value]="option.value"
+          [matTooltip]="option.label"
+          [aria-label]="option.label"
+        >
+          <mat-icon>{{ option.icon }}</mat-icon>
+        </mat-button-toggle>
+      }
+    </mat-button-toggle-group>
+  </div>
 
-  <section>
-    @if (audio.canSelectOutput) {
-      <mat-form-field>
-        <mat-label i18n="@@devices.output">Output</mat-label>
-        <mat-select [(ngModel)]="settings.outputId">
-          <mat-option value="" i18n="@@devices.defaultOutput">Default output</mat-option>
-          @for (device of audio.outputs(); track device.deviceId) {
-            <mat-option [value]="device.deviceId">{{ device.label || device.deviceId }}</mat-option>
-          }
-        </mat-select>
-      </mat-form-field>
+  <mat-form-field>
+    <mat-label i18n="@@toolbar.language">Language</mat-label>
+    <mat-select [ngModel]="language" (ngModelChange)="changeLanguage($event)" [disabled]="joined()">
+      @for (option of languages; track option.value) {
+        <mat-option [value]="option.value">{{ option.label }}</mat-option>
+      }
+    </mat-select>
+    @if (joined()) {
+      <mat-hint i18n="@@settings.languageHint">Can be changed outside a room</mat-hint>
     }
-
-    <mat-form-field>
-      <mat-label i18n="@@lobby.quality">Quality you send</mat-label>
-      <mat-select [(ngModel)]="settings.bitrate">
-        @for (option of bitrates; track option.value) {
-          <mat-option [value]="option.value">{{ option.label }}</mat-option>
-        }
-      </mat-select>
-      @if (joined()) {
-        <mat-hint i18n="@@settings.qualityHint">Applies to new connections</mat-hint>
-      }
-    </mat-form-field>
-
-    <mat-form-field>
-      <mat-label i18n="@@toolbar.language">Language</mat-label>
-      <mat-select
-        [ngModel]="language"
-        (ngModelChange)="changeLanguage($event)"
-        [disabled]="joined()"
-      >
-        @for (option of languages; track option.value) {
-          <mat-option [value]="option.value">{{ option.label }}</mat-option>
-        }
-      </mat-select>
-      @if (joined()) {
-        <mat-hint i18n="@@settings.languageHint">Can be changed outside a room</mat-hint>
-      }
-    </mat-form-field>
-
-    <div class="row">
-      <span class="label" i18n="@@toolbar.theme">Theme</span>
-      <mat-button-toggle-group
-        hideSingleSelectionIndicator
-        [ngModel]="settings.theme()"
-        (ngModelChange)="settings.theme.set($event)"
-      >
-        @for (option of themes; track option.value) {
-          <mat-button-toggle
-            [value]="option.value"
-            [matTooltip]="option.label"
-            [aria-label]="option.label"
-          >
-            <mat-icon>{{ option.icon }}</mat-icon>
-          </mat-button-toggle>
-        }
-      </mat-button-toggle-group>
-    </div>
-  </section>
-</mat-expansion-panel>
+  </mat-form-field>
+</section>

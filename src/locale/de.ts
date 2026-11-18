@@ -51,13 +51,12 @@ export const DE: Record<string, string> = {
 
   'settings.title': 'Einstellungen',
   'settings.close': 'Schließen',
-  'settings.more': 'Weitere',
   'settings.qualityHint': 'Gilt für neue Verbindungen',
   'settings.languageHint': 'Nur außerhalb eines Raums änderbar',
 
   'dialog.cancel': 'Abbrechen',
 
-  'devices.microphone': 'Mikrofon',
+  'devices.microphone': 'Aufnahme',
   'devices.defaultMicrophone': 'Standard-Mikrofon',
   'devices.output': 'Ausgabe',
   'devices.defaultOutput': 'Standard-Ausgabe',
