@@ -20,20 +20,17 @@
   <span class="count">{{ channel().count }}</span>
 </div>
 
-@if (channel().count > 0) {
-  <div class="members">
-    @if (channel().here) {
-      <app-member-tile
-        [name]="selfName()"
-        [self]="true"
-        [muted]="audio.muted()"
-        [speaking]="audio.speaking()"
-        [analyser]="audio.selfAnalyser()"
-        (levelSpeaking)="audio.voiceActive.set($event)"
-      />
-    }
-    @for (peer of channel().members; track peer.id) {
-      <app-peer-tile [peer]="peer" [away]="!channel().here" />
-    }
-  </div>
+@if (channel().here) {
+  <app-member-row
+    [name]="selfName()"
+    [self]="true"
+    [muted]="audio.muted()"
+    [speaking]="audio.speaking()"
+    [analyser]="audio.selfAnalyser()"
+    [belowDb]="gateDb()"
+    (levelSpeaking)="audio.voiceActive.set($event)"
+  />
+}
+@for (peer of channel().members; track peer.id) {
+  <app-peer-tile [peer]="peer" [away]="!channel().here" />
 }

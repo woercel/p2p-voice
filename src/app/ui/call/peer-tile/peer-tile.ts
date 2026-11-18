@@ -6,11 +6,11 @@ import { MatSliderModule } from '@angular/material/slider';
 import { currentLanguage } from '../../../core/i18n/language';
 import { Peer, RoomService } from '../../../core/net/room';
 import { PeerStats } from '../../../core/net/peer-stats';
-import { MemberTile } from '../member-tile/member-tile';
+import { MemberRow } from '../member-row/member-row';
 
 @Component({
   selector: 'app-peer-tile',
-  imports: [FormsModule, MatIconModule, MatMenuModule, MatSliderModule, MemberTile],
+  imports: [FormsModule, MatIconModule, MatMenuModule, MatSliderModule, MemberRow],
   templateUrl: './peer-tile.html',
   styleUrl: './peer-tile.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

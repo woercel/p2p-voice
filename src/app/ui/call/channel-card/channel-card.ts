@@ -1,10 +1,12 @@
-import { ChangeDetectionStrategy, Component, inject, input, output } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, input, output } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { AudioEngine } from '../../../core/audio/audio-engine';
+import { isGateEnabled } from '../../../core/audio/levels';
 import { Peer } from '../../../core/net/room';
-import { MemberTile } from '../member-tile/member-tile';
+import { Settings } from '../../../core/settings';
+import { MemberRow } from '../member-row/member-row';
 import { PeerTile } from '../peer-tile/peer-tile';
 
 export type ChannelView = {
@@ -19,7 +21,7 @@ export type ChannelView = {
 /** A channel surface; clicking anywhere on it moves you there. */
 @Component({
   selector: 'app-channel-card',
-  imports: [MatButtonModule, MatIconModule, MatTooltipModule, MemberTile, PeerTile],
+  imports: [MatButtonModule, MatIconModule, MatTooltipModule, MemberRow, PeerTile],
   templateUrl: './channel-card.html',
   styleUrl: './channel-card.scss',
   host: {
@@ -40,6 +42,11 @@ export class ChannelCard {
   readonly remove = output<void>();
 
   protected readonly audio = inject(AudioEngine);
+  private readonly settings = inject(Settings);
+  protected readonly gateDb = computed(() => {
+    const db = this.settings.gateDb();
+    return isGateEnabled(db) ? db : null;
+  });
   protected readonly joinLabel = $localize`:@@channel.join:Join`;
 
   protected join(event: Event): void {

@@ -7,12 +7,16 @@
   width: 100%;
   padding: 0;
   border: 0;
-  border-radius: var(--mat-sys-corner-large);
+  border-radius: var(--mat-sys-corner-medium);
   background: none;
   color: inherit;
   font: inherit;
   text-align: inherit;
   cursor: pointer;
+
+  &:hover app-member-row:not(.speaking) {
+    background: var(--mat-sys-surface-container-highest);
+  }
 
   &:focus-visible {
     outline: 2px solid var(--mat-sys-primary);

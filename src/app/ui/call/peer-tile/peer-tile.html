@@ -1,8 +1,8 @@
 @if (away()) {
-  <app-member-tile [name]="name()" [muted]="peer().muted" [away]="true" />
+  <app-member-row [name]="name()" [muted]="peer().muted" [away]="true" />
 } @else {
   <button class="trigger" [matMenuTriggerFor]="menu" (click)="$event.stopPropagation()">
-    <app-member-tile
+    <app-member-row
       [name]="name()"
       [muted]="peer().muted"
       [speaking]="speaking()"

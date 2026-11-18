@@ -1,10 +1,8 @@
 :host {
   display: flex;
   flex-direction: column;
-  gap: 12px;
-  min-height: 160px;
-  padding: 8px 12px 12px 16px;
-  box-sizing: border-box;
+  gap: 2px;
+  padding: 6px;
   border-radius: var(--mat-sys-corner-extra-large);
   background: var(--mat-sys-surface-container-low);
   outline: 1px solid transparent;
@@ -35,7 +33,8 @@
   display: flex;
   align-items: center;
   gap: 4px;
-  min-height: 40px;
+  min-height: 44px;
+  padding: 0 12px;
 }
 
 .name {
@@ -52,7 +51,7 @@
 }
 
 .count {
-  min-width: 24px;
+  min-width: 20px;
   text-align: right;
   font: var(--mat-sys-label-large);
   color: var(--mat-sys-on-surface-variant);
@@ -60,6 +59,7 @@
 }
 
 .join-hint {
+  margin-right: 8px;
   font: var(--mat-sys-label-large);
   color: var(--mat-sys-primary);
 }
@@ -86,10 +86,4 @@
 
 .delete {
   color: var(--mat-sys-on-surface-variant);
-}
-
-.members {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
-  gap: 8px;
 }
