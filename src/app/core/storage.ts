@@ -16,3 +16,11 @@ export function writeStored(key: string, value: unknown): void {
     // Storage can be unavailable (private mode, blocked site data); settings then live in memory.
   }
 }
+
+export function removeStored(key: string): void {
+  try {
+    localStorage.removeItem(PREFIX + key);
+  } catch {
+    // See writeStored.
+  }
+}

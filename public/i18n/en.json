@@ -39,6 +39,8 @@
   },
   "call": {
     "copied": "Invite link copied",
+    "soundBlocked": "Back in the room. Your browser is holding the sound back.",
+    "soundOn": "Turn on sound",
     "alone": "Nobody else is here yet. Share the invite link.",
     "newGroup": "New group",
     "deleteTitle": "Delete {{name}}?",

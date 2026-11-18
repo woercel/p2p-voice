@@ -39,6 +39,8 @@
   },
   "call": {
     "copied": "Einladungslink kopiert",
+    "soundBlocked": "Wieder im Raum. Dein Browser hält den Ton noch zurück.",
+    "soundOn": "Ton an",
     "alone": "Noch niemand da. Schick den Einladungslink rum.",
     "newGroup": "Neue Gruppe",
     "deleteTitle": "{{name}} löschen?",

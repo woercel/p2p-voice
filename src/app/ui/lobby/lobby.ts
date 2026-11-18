@@ -1,4 +1,11 @@
-import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  afterNextRender,
+  computed,
+  inject,
+  signal,
+} from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatExpansionModule } from '@angular/material/expansion';
@@ -8,6 +15,7 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSelectModule } from '@angular/material/select';
 import { TranslatePipe } from '@ngx-translate/core';
 import { RENDEZVOUS, Rendezvous, inviteHash, parseInvite, randomId } from '../../core/invite';
+import { isLastRoom } from '../../core/last-room';
 import { RoomService } from '../../core/net/room';
 import { Settings } from '../../core/settings';
 import { Logo } from '../logo/logo';
@@ -43,6 +51,11 @@ export class Lobby {
   protected readonly joining = computed(() => this.room.status() === 'joining');
   protected readonly error = signal<JoinError | null>(null);
   protected readonly rendezvous = RENDEZVOUS;
+
+  constructor() {
+    // A reload inside a call lands here with the same link; go straight back in.
+    if (isLastRoom(this.parsed)) afterNextRender(() => void this.join());
+  }
 
   protected async join(): Promise<void> {
     const room = this.roomName().trim();

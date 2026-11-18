@@ -14,6 +14,7 @@ import {
 import { ChannelPresence, channelCue } from '../channels/channel-cues';
 import { I18n } from '../i18n/language';
 import { Invite, Rendezvous, randomId } from '../invite';
+import { forgetRoom, rememberRoom } from '../last-room';
 import { Settings } from '../settings';
 import { installRemoteSdpPatches } from './remote-sdp';
 import { PeerStats, StatsSample, readPeerStats } from './peer-stats';
@@ -139,13 +140,19 @@ export class RoomService {
       this.status.set('joined');
       this.joinedAt = performance.now();
       this.audio.playCue('join');
+      rememberRoom(invite);
     } catch (error) {
-      await this.leave();
+      await this.teardown();
       throw error;
     }
   }
 
   async leave(): Promise<void> {
+    forgetRoom();
+    await this.teardown();
+  }
+
+  private async teardown(): Promise<void> {
     clearInterval(this.statsTimer);
     await this.room?.leave().catch(() => undefined);
     this.room = null;

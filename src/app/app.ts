@@ -5,14 +5,17 @@ import {
   DOCUMENT,
   afterNextRender,
   computed,
+  effect,
   inject,
+  untracked,
 } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule, MatIconRegistry } from '@angular/material/icon';
 import { MatSidenavModule } from '@angular/material/sidenav';
-import { MatSnackBar } from '@angular/material/snack-bar';
+import { MatSnackBar, MatSnackBarRef, TextOnlySnackBar } from '@angular/material/snack-bar';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { TranslatePipe } from '@ngx-translate/core';
+import { AudioEngine } from './core/audio/audio-engine';
 import { MuteHotkey } from './core/hotkey/mute-hotkey';
 import { I18n } from './core/i18n/language';
 import { inviteHash } from './core/invite';
@@ -58,6 +61,24 @@ export class App {
     inject(MatIconRegistry).setDefaultFontSetClass('material-symbols-outlined');
     inject(MuteHotkey);
     inject(Theme);
+
+    const audio = inject(AudioEngine);
+    let soundHint: MatSnackBarRef<TextOnlySnackBar> | null = null;
+    effect(() => {
+      const blocked = this.room.status() === 'joined' && audio.soundBlocked();
+      untracked(() => {
+        if (blocked) {
+          // Any click resumes audio, the button just gives that click an obvious place.
+          soundHint = this.snackBar.open(
+            this.i18n.text('call.soundBlocked'),
+            this.i18n.text('call.soundOn'),
+          );
+        } else {
+          soundHint?.dismiss();
+          soundHint = null;
+        }
+      });
+    });
 
     const document = inject(DOCUMENT);
     afterNextRender(() => {

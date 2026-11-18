@@ -10,6 +10,7 @@ export type Playback = {
 };
 
 const HIDDEN_DEVICE_IDS = ['', 'default', 'communications'];
+const RESUME_WAIT_MS = 500;
 
 @Injectable({ providedIn: 'root' })
 export class AudioEngine {
@@ -26,6 +27,8 @@ export class AudioEngine {
   readonly muted = signal(false);
   readonly gateOpen = signal(true);
   readonly voiceActive = signal(false);
+  /** The browser holds audio back until the next click or key press. */
+  readonly soundBlocked = signal(false);
   readonly speaking = computed(() => this.voiceActive() && this.gateOpen() && !this.muted());
   readonly devices = signal<MediaDeviceInfo[]>([]);
   readonly inputs = computed(() => this.devices().filter((d) => d.kind === 'audioinput'));
@@ -51,6 +54,13 @@ export class AudioEngine {
       if (this.sendStream()) void this.applyOutput(outputId);
     });
 
+    const unlock = () => {
+      if (this.context?.state === 'suspended') void this.context.resume();
+    };
+    for (const type of ['pointerdown', 'keydown']) {
+      document.addEventListener(type, unlock, { capture: true });
+    }
+
     navigator.mediaDevices?.addEventListener('devicechange', () => void this.refreshDevices());
     void this.refreshDevices();
   }
@@ -59,8 +69,11 @@ export class AudioEngine {
     const context = new AudioContext({ latencyHint: 'interactive' });
     this.context = context;
     this.testTone = testTone;
+    context.onstatechange = () => this.soundBlocked.set(context.state === 'suspended');
+    // Rejoining after a reload has no click behind it, and browsers may then hold audio back
+    // until the next gesture. Waiting for that would stall the join, so only wait briefly.
+    const resumed = context.resume();
     try {
-      await context.resume();
       await context.audioWorklet.addModule('worklets/gate.js');
       this.gate = new AudioWorkletNode(context, 'gate', { outputChannelCount: [2] });
       this.gate.port.onmessage = (event: MessageEvent<boolean>) => this.gateOpen.set(event.data);
@@ -72,6 +85,8 @@ export class AudioEngine {
       this.connectInput(await this.openInput());
       this.sendStream.set(destination.stream);
       await this.refreshDevices();
+      await Promise.race([resumed, new Promise((resolve) => setTimeout(resolve, RESUME_WAIT_MS))]);
+      this.soundBlocked.set(context.state === 'suspended');
       return destination.stream;
     } catch (error) {
       await this.stop();
@@ -133,6 +148,7 @@ export class AudioEngine {
     this.selfAnalyser.set(null);
     this.muted.set(false);
     this.gateOpen.set(true);
+    this.soundBlocked.set(false);
   }
 
   private async refreshDevices(): Promise<void> {
