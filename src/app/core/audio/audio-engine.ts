@@ -12,6 +12,12 @@ export type Playback = {
 const HIDDEN_DEVICE_IDS = ['', 'default', 'communications'];
 const RESUME_WAIT_MS = 500;
 
+/** An `exact` device id that matches no device fails with one of these, depending on the browser. */
+const isMissingDevice = (error: unknown): boolean => {
+  const name = (error as { name?: unknown } | null)?.name;
+  return name === 'OverconstrainedError' || name === 'NotFoundError';
+};
+
 @Injectable({ providedIn: 'root' })
 export class AudioEngine {
   private readonly settings = inject(Settings);
@@ -94,11 +100,21 @@ export class AudioEngine {
     }
   }
 
-  /** The sent track stays the same; only the gate input is rewired, so peers notice nothing. */
+  /**
+   * The sent track stays the same; only the gate input is rewired, so peers notice nothing.
+   * The old microphone keeps running until the new one is open, so a failure changes nothing.
+   */
   async reopenInput(): Promise<void> {
     if (!this.context) return;
-    this.rawStream?.getTracks().forEach((track) => track.stop());
-    this.connectInput(await this.openInput());
+    const previous = this.rawStream;
+    const stream = await this.openInput();
+    if (!this.context) {
+      // Left the room while the browser was opening the device.
+      stream.getTracks().forEach((track) => track.stop());
+      return;
+    }
+    this.connectInput(stream);
+    previous?.getTracks().forEach((track) => track.stop());
   }
 
   createPlayback(stream: MediaStream): Playback {
@@ -162,21 +178,32 @@ export class AudioEngine {
     await context.setSinkId(deviceId).catch(() => undefined);
   }
 
-  private openInput(): Promise<MediaStream> {
-    if (this.testTone && this.context) return Promise.resolve(this.createTestTone(this.context));
+  private async openInput(): Promise<MediaStream> {
+    if (this.testTone && this.context) return this.createTestTone(this.context);
     const filters = !this.settings.headphoneMode();
+    const open = (deviceId: string) =>
+      navigator.mediaDevices.getUserMedia({
+        audio: {
+          deviceId: deviceId ? { exact: deviceId } : undefined,
+          echoCancellation: filters,
+          noiseSuppression: filters,
+          autoGainControl: filters,
+          channelCount: { ideal: 2 },
+          sampleRate: { ideal: 48_000 },
+          sampleSize: { ideal: 24 },
+        },
+      });
+
     const deviceId = this.settings.microphoneId();
-    return navigator.mediaDevices.getUserMedia({
-      audio: {
-        deviceId: deviceId ? { exact: deviceId } : undefined,
-        echoCancellation: filters,
-        noiseSuppression: filters,
-        autoGainControl: filters,
-        channelCount: { ideal: 2 },
-        sampleRate: { ideal: 48_000 },
-        sampleSize: { ideal: 24 },
-      },
-    });
+    try {
+      return await open(deviceId);
+    } catch (error) {
+      if (!deviceId || !isMissingDevice(error)) throw error;
+      // The remembered microphone is gone (unplugged, or ids reset); use the default instead.
+      const stream = await open('');
+      this.settings.microphoneId.set('');
+      return stream;
+    }
   }
 
   private connectInput(stream: MediaStream): void {

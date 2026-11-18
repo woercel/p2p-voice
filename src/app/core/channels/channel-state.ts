@@ -68,8 +68,24 @@ export function applyChannelMessage(state: ChannelState, message: unknown): Chan
 }
 
 export function newChannel(state: ChannelState, id: string, now: number): Channel {
-  const highest = state.channels.reduce((max, c) => Math.max(max, c.number), 0);
+  const highest = numbered(state).reduce((max, c) => Math.max(max, c.number), 0);
   return { id, number: highest + 1, createdAt: now };
+}
+
+/**
+ * The channels with the numbers to show. Two peers creating a channel at the same moment both
+ * pick the same number; the older channel keeps it and the newer one moves up to the next free
+ * number. Only the requested numbers go into the result, so every peer arrives at the same
+ * numbering whatever order the channels reached it in.
+ */
+export function numbered(state: ChannelState): Channel[] {
+  const taken = new Set<number>();
+  return state.channels.map((channel) => {
+    let number = channel.number;
+    while (taken.has(number)) number++;
+    taken.add(number);
+    return number === channel.number ? channel : { ...channel, number };
+  });
 }
 
 export function snapshot(state: ChannelState): ChannelMessage {

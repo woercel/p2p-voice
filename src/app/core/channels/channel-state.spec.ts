@@ -4,6 +4,7 @@ import {
   LOBBY,
   applyChannelMessage,
   newChannel,
+  numbered,
   resolveChannel,
   snapshot,
 } from './channel-state';
@@ -56,6 +57,23 @@ describe('channel state', () => {
     const state: ChannelState = { channels: [group('a', 1), group('b', 4)], deleted: [] };
     expect(newChannel(state, 'c', 99)).toEqual({ id: 'c', number: 5, createdAt: 99 });
     expect(newChannel(EMPTY_CHANNEL_STATE, 'd', 1).number).toBe(1);
+  });
+
+  it('gives groups created at the same moment different numbers, in any arrival order', () => {
+    const older = group('a', 2, 10);
+    const newer = group('b', 2, 11);
+    const show = (first: typeof older, second: typeof older) => {
+      let state = applyChannelMessage(EMPTY_CHANNEL_STATE, { op: 'create', channel: first });
+      state = applyChannelMessage(state, { op: 'create', channel: second });
+      return numbered(state).map((c) => `${c.id}${c.number}`);
+    };
+    expect(show(older, newer)).toEqual(['a2', 'b3']);
+    expect(show(newer, older)).toEqual(['a2', 'b3']);
+  });
+
+  it('numbers a new group after the highest number on show', () => {
+    const state: ChannelState = { channels: [group('a', 2, 10), group('b', 2, 11)], deleted: [] };
+    expect(newChannel(state, 'c', 99).number).toBe(4);
   });
 
   it('resolves unknown or deleted channels to the lobby', () => {

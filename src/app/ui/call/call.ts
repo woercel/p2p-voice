@@ -5,7 +5,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { AudioEngine } from '../../core/audio/audio-engine';
-import { Channel, LOBBY, resolveChannel } from '../../core/channels/channel-state';
+import { Channel, LOBBY, numbered, resolveChannel } from '../../core/channels/channel-state';
 import { MuteHotkey } from '../../core/hotkey/mute-hotkey';
 import { TranslatePipe } from '@ngx-translate/core';
 import { channelName } from '../../core/i18n/labels';
@@ -51,7 +51,7 @@ export class Call {
     const state = this.room.channelState();
     const own = this.room.channel();
     const peers = this.room.roster();
-    const entries: (typeof LOBBY | Channel)[] = [LOBBY, ...state.channels];
+    const entries: (typeof LOBBY | Channel)[] = [LOBBY, ...numbered(state)];
     return entries.map((channel) => {
       const id = channel === LOBBY ? LOBBY : channel.id;
       const members = peers.filter((peer) => resolveChannel(state, peer.channel) === id);

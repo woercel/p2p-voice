@@ -71,21 +71,23 @@ export class SettingsPanel {
   );
 
   protected changeMicrophone(id: string): void {
+    const previous = this.settings.microphoneId();
     this.settings.microphoneId.set(id);
-    this.reopen();
+    this.reopen(() => this.settings.microphoneId.set(previous));
   }
 
   protected changeHeadphoneMode(enabled: boolean): void {
+    const previous = this.settings.headphoneMode();
     this.settings.headphoneMode.set(enabled);
-    this.reopen();
+    this.reopen(() => this.settings.headphoneMode.set(previous));
   }
 
-  private reopen(): void {
-    this.audio
-      .reopenInput()
-      .catch(() =>
-        this.snackBar.open(this.i18n.text('devices.reopenFailed'), undefined, { duration: 4000 }),
-      );
+  /** The old microphone stays open when the new one fails, so the setting goes back to match it. */
+  private reopen(revert: () => void): void {
+    this.audio.reopenInput().catch(() => {
+      revert();
+      this.snackBar.open(this.i18n.text('devices.reopenFailed'), undefined, { duration: 4000 });
+    });
   }
 }
 

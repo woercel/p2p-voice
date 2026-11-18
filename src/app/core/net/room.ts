@@ -73,6 +73,8 @@ type PeerRuntime = {
   sample?: StatsSample;
   /** ICE stopped hearing from them before the connection ended: a drop, not a closed page. */
   unreachable?: boolean;
+  /** Their own info arrived; until then the name may only come from someone else's roster. */
+  introduced?: boolean;
 };
 
 @Injectable({ providedIn: 'root' })
@@ -339,10 +341,12 @@ export class RoomService {
       muted: Boolean(info.muted),
       channel: typeof info.channel === 'string' ? info.channel : LOBBY,
     };
-    const firstInfo = this.peers().get(peerId)?.name === null;
+    const runtime = this.runtimeFor(peerId);
+    const firstInfo = !runtime.introduced;
+    runtime.introduced = true;
     if (firstInfo && name) {
       const twin = lostTwin(this.expected(), name);
-      if (twin) this.forgetExpected(twin.id);
+      if (twin && twin.id !== peerId) this.forgetExpected(twin.id);
       const volume = this.volumeByName.get(name);
       if (volume !== undefined) patch.volume = volume;
     }

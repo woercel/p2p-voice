@@ -9,6 +9,7 @@
       class="delete"
       (click)="removeChannel($event)"
       (keydown.enter)="$event.stopPropagation()"
+      (keydown.space)="$event.stopPropagation()"
       [matTooltip]="'channel.delete' | translate"
       [attr.aria-label]="'channel.delete' | translate"
     >
