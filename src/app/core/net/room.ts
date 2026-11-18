@@ -18,6 +18,8 @@ import { PeerStats, StatsSample, readPeerStats } from './peer-stats';
 
 const APP_ID = 'hifi-p2p-voice/v1';
 const STATS_INTERVAL_MS = 1000;
+/** Peers already in the room are discovered one by one right after joining; no chime for those. */
+const JOIN_CUE_QUIET_MS = 4000;
 
 const STRATEGIES: Record<
   Rendezvous,
@@ -66,6 +68,7 @@ export class RoomService {
   private statsTimer: ReturnType<typeof setInterval> | undefined;
   private routing = false;
   private routeAgain = false;
+  private joinedAt = 0;
 
   readonly status = signal<RoomStatus>('idle');
   readonly invite = signal<Invite | null>(null);
@@ -123,6 +126,8 @@ export class RoomService {
       this.statsTimer = setInterval(() => void this.pollStats(), STATS_INTERVAL_MS);
       this.invite.set(invite);
       this.status.set('joined');
+      this.joinedAt = performance.now();
+      this.audio.playCue('join');
     } catch (error) {
       await this.leave();
       throw error;
@@ -172,6 +177,7 @@ export class RoomService {
   }
 
   private welcome(peerId: string, stream: MediaStream): void {
+    if (performance.now() - this.joinedAt > JOIN_CUE_QUIET_MS) this.audio.playCue('join');
     this.patchPeer(peerId, {});
     const sends = this.room?.addStream(stream, { target: peerId }) ?? [];
     void Promise.allSettled(sends).then(() => this.route());
@@ -204,6 +210,7 @@ export class RoomService {
   }
 
   private removePeer(peerId: string): void {
+    if (this.peers().has(peerId)) this.audio.playCue('leave');
     this.runtime.get(peerId)?.playback?.dispose();
     this.runtime.delete(peerId);
     this.peers.update((peers) => {

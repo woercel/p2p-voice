@@ -1,5 +1,6 @@
 import { Injectable, computed, effect, inject, signal } from '@angular/core';
 import { Settings } from '../settings';
+import { Cue, playCue } from './cues';
 import { dbToLinear, isGateEnabled } from './levels';
 
 export type Playback = {
@@ -112,6 +113,10 @@ export class AudioEngine {
         element.srcObject = null;
       },
     };
+  }
+
+  playCue(cue: Cue): void {
+    if (this.context?.state === 'running') playCue(this.context, cue);
   }
 
   async stop(): Promise<void> {
