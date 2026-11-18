@@ -11,6 +11,7 @@ import {
   resolveChannel,
   snapshot,
 } from '../channels/channel-state';
+import { ChannelPresence, channelCue } from '../channels/channel-cues';
 import { Invite, Rendezvous, randomId } from '../invite';
 import { Settings } from '../settings';
 import { installOpusTuning } from './opus-sdp';
@@ -69,6 +70,7 @@ export class RoomService {
   private routing = false;
   private routeAgain = false;
   private joinedAt = 0;
+  private presence: ChannelPresence | null = null;
 
   readonly status = signal<RoomStatus>('idle');
   readonly invite = signal<Invite | null>(null);
@@ -100,6 +102,13 @@ export class RoomService {
       this.channel();
       this.peers();
       untracked(() => void this.route());
+    });
+    effect(() => {
+      const joined = this.status() === 'joined';
+      const own = this.channel();
+      const state = this.channelState();
+      const peers = this.peers();
+      untracked(() => this.cueChannelMoves(joined, own, state, peers));
     });
 
     inject(DOCUMENT).defaultView?.addEventListener('pagehide', () => void this.room?.leave());
@@ -218,6 +227,29 @@ export class RoomService {
       next.delete(peerId);
       return next;
     });
+  }
+
+  private cueChannelMoves(
+    joined: boolean,
+    own: string,
+    state: ChannelState,
+    peers: ReadonlyMap<string, Peer>,
+  ): void {
+    if (!joined) {
+      this.presence = null;
+      return;
+    }
+    const members = new Set<string>();
+    const placed = new Set<string>();
+    for (const peer of peers.values()) {
+      if (peer.name === null) continue;
+      placed.add(peer.id);
+      if (resolveChannel(state, peer.channel) === own) members.add(peer.id);
+    }
+    const next = { channel: own, members, placed };
+    const cue = channelCue(this.presence, next);
+    if (cue) this.audio.playCue(cue);
+    this.presence = next;
   }
 
   private runtimeFor(peerId: string): PeerRuntime {
