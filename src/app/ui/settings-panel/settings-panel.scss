@@ -57,20 +57,78 @@ mat-form-field {
   flex-direction: column;
 
   .meter {
-    margin: 8px 8px 0;
-  }
-
-  mat-slider {
-    margin: 0;
+    margin: 14px 4px 12px;
   }
 }
 
+// The range input lies over the meter. It is one thumb width wider than the meter, so the
+// thumb's centre covers exactly the meter's scale from end to end.
+$thumb-width: 6px;
+$thumb-height: 22px;
+$hit-height: 28px;
+
 .threshold {
   position: absolute;
-  top: -3px;
-  bottom: -3px;
-  width: 2px;
-  background: var(--mat-sys-on-surface);
+  top: 50%;
+  left: calc($thumb-width / -2);
+  width: calc(100% + $thumb-width);
+  height: $hit-height;
+  margin: 0;
+  transform: translateY(-50%);
+  background: none;
+  appearance: none;
+  cursor: ew-resize;
+
+  &:focus {
+    outline: none;
+  }
+
+  &::-webkit-slider-runnable-track {
+    height: $hit-height;
+    background: none;
+  }
+
+  &::-moz-range-track {
+    height: $hit-height;
+    background: none;
+  }
+
+  @mixin thumb {
+    width: $thumb-width;
+    height: $thumb-height;
+    border: none;
+    border-radius: calc($thumb-width / 2);
+    background: var(--mat-sys-on-surface);
+    box-shadow: 0 0 0 2px var(--mat-sys-surface-container-low);
+  }
+
+  &::-webkit-slider-thumb {
+    @include thumb;
+    margin-top: calc(($hit-height - $thumb-height) / 2);
+    appearance: none;
+  }
+
+  &::-moz-range-thumb {
+    @include thumb;
+  }
+
+  &.off::-webkit-slider-thumb {
+    background: var(--mat-sys-outline);
+  }
+
+  &.off::-moz-range-thumb {
+    background: var(--mat-sys-outline);
+  }
+
+  &:focus-visible::-webkit-slider-thumb {
+    outline: 2px solid var(--mat-sys-primary);
+    outline-offset: 2px;
+  }
+
+  &:focus-visible::-moz-range-thumb {
+    outline: 2px solid var(--mat-sys-primary);
+    outline-offset: 2px;
+  }
 }
 
 .info {

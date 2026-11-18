@@ -60,13 +60,18 @@
       [silenced]="audio.muted()"
       [belowDb]="gateEnabled() ? settings.gateDb() : null"
     >
-      @if (gateEnabled()) {
-        <span class="threshold" [style.left.%]="thresholdPercent()"></span>
-      }
+      <input
+        type="range"
+        class="threshold"
+        [class.off]="!gateEnabled()"
+        [min]="gateOffDb"
+        [max]="meterCeilDb"
+        step="1"
+        [(ngModel)]="settings.gateDb"
+        [attr.aria-label]="'self.gate' | translate"
+        [attr.aria-valuetext]="gateLabel()"
+      />
     </div>
-    <mat-slider [min]="gateOffDb" max="-10" step="1" discrete [displayWith]="formatGate">
-      <input matSliderThumb [(ngModel)]="settings.gateDb" />
-    </mat-slider>
   </div>
 
   <div class="row">

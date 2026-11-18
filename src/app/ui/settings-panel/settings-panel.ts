@@ -7,12 +7,11 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
-import { MatSliderModule } from '@angular/material/slider';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { TranslatePipe } from '@ngx-translate/core';
 import { AudioEngine } from '../../core/audio/audio-engine';
-import { GATE_OFF_DB, isGateEnabled, meterPercent } from '../../core/audio/levels';
+import { GATE_OFF_DB, METER_CEIL_DB, isGateEnabled } from '../../core/audio/levels';
 import { MuteHotkey } from '../../core/hotkey/mute-hotkey';
 import { I18n, Language } from '../../core/i18n/language';
 import { RoomService } from '../../core/net/room';
@@ -30,7 +29,6 @@ import { LevelMeter } from '../level-meter/level-meter';
     MatInputModule,
     MatSelectModule,
     MatSlideToggleModule,
-    MatSliderModule,
     MatTooltipModule,
     TranslatePipe,
     LevelMeter,
@@ -67,12 +65,10 @@ export class SettingsPanel {
   protected readonly joined = computed(() => this.room.status() !== 'idle');
   protected readonly gateOffDb = GATE_OFF_DB;
   protected readonly gateEnabled = computed(() => isGateEnabled(this.settings.gateDb()));
-  protected readonly thresholdPercent = computed(() => meterPercent(this.settings.gateDb()));
+  protected readonly meterCeilDb = METER_CEIL_DB;
   protected readonly gateLabel = computed(() =>
     this.gateEnabled() ? `${this.settings.gateDb()} dB` : this.i18n.text('self.gateOff'),
   );
-  protected readonly formatGate = (db: number): string =>
-    isGateEnabled(db) ? `${db}` : this.i18n.text('self.gateOffShort');
 
   protected changeMicrophone(id: string): void {
     this.settings.microphoneId.set(id);
