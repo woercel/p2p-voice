@@ -75,12 +75,15 @@
   </div>
 
   <div class="row">
+    <span class="label with-info" id="headphone-mode-label">
+      {{ 'devices.headphoneMode' | translate }}
+      <mat-icon class="info" [matTooltip]="'devices.headphoneHint' | translate">info</mat-icon>
+    </span>
     <mat-slide-toggle
+      aria-labelledby="headphone-mode-label"
       [ngModel]="settings.headphoneMode()"
       (ngModelChange)="changeHeadphoneMode($event)"
-      >{{ 'devices.headphoneMode' | translate }}</mat-slide-toggle
-    >
-    <mat-icon class="info" [matTooltip]="'devices.headphoneHint' | translate">info</mat-icon>
+    />
   </div>
 
   <div class="row">
@@ -99,6 +102,25 @@
 
 <section>
   <div class="row">
+    <span class="label">{{ 'toolbar.language' | translate }}</span>
+    <mat-button-toggle-group
+      hideSingleSelectionIndicator
+      [ngModel]="i18n.language()"
+      (ngModelChange)="i18n.switch($event)"
+    >
+      @for (option of languages; track option.value) {
+        <mat-button-toggle
+          [value]="option.value"
+          [matTooltip]="option.label"
+          [aria-label]="option.label"
+          [attr.lang]="option.value"
+          >{{ option.short }}</mat-button-toggle
+        >
+      }
+    </mat-button-toggle-group>
+  </div>
+
+  <div class="row">
     <span class="label">{{ 'toolbar.theme' | translate }}</span>
     <mat-button-toggle-group
       hideSingleSelectionIndicator
@@ -116,13 +138,4 @@
       }
     </mat-button-toggle-group>
   </div>
-
-  <mat-form-field>
-    <mat-label>{{ 'toolbar.language' | translate }}</mat-label>
-    <mat-select [ngModel]="i18n.language()" (ngModelChange)="i18n.switch($event)">
-      @for (option of languages; track option.value) {
-        <mat-option [value]="option.value">{{ option.label }}</mat-option>
-      }
-    </mat-select>
-  </mat-form-field>
 </section>

@@ -47,9 +47,9 @@ export class SettingsPanel {
   private readonly snackBar = inject(MatSnackBar);
   protected readonly i18n = inject(I18n);
 
-  protected readonly languages: { value: Language; label: string }[] = [
-    { value: 'de', label: 'Deutsch' },
-    { value: 'en', label: 'English' },
+  protected readonly languages: { value: Language; label: string; short: string }[] = [
+    { value: 'de', label: 'Deutsch', short: 'DE' },
+    { value: 'en', label: 'English', short: 'EN' },
   ];
   protected readonly themes: { value: ThemeMode; icon: string }[] = [
     { value: 'system', icon: 'brightness_auto' },
