@@ -22,6 +22,7 @@ h1 {
 
 .subtitle {
   margin: -8px 0 16px;
+  white-space: pre-line;
   font: var(--mat-sys-body-medium);
   color: var(--mat-sys-on-surface-variant);
 }

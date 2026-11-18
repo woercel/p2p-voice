@@ -1,6 +1,7 @@
 <app-logo [animated]="joining()" />
 
 <h1>{{ (invited ? 'lobby.invitedTitle' : 'lobby.title') | translate }}</h1>
+<app-direct-links />
 <p class="subtitle">{{ 'lobby.subtitle' | translate }}</p>
 
 <mat-form-field>
@@ -35,7 +36,8 @@
   </mat-form-field>
   <mat-form-field>
     <mat-label>{{ 'lobby.password' | translate }}</mat-label>
-    <input matInput spellcheck="false" [(ngModel)]="password" />  </mat-form-field>
+    <input matInput spellcheck="false" [(ngModel)]="password" />
+  </mat-form-field>
   <mat-form-field>
     <mat-label>{{ 'lobby.rendezvous' | translate }}</mat-label>
     <mat-select [(ngModel)]="via">

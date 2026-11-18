@@ -84,7 +84,7 @@
   "lobby": {
     "invitedTitle": "You've been invited",
     "title": "Open a new room",
-    "subtitle": "Browser to browser, Opus up to 510 kbit/s stereo, no accounts.",
+    "subtitle": "Just you, connected directly.\nNo accounts. No data harvesting.",
     "name": "Your name",
     "quality": "Your send quality",
     "roomSettings": "Choose room",

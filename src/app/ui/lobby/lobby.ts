@@ -18,6 +18,7 @@ import { RENDEZVOUS, Rendezvous, inviteHash, parseInvite, randomId } from '../..
 import { isLastRoom } from '../../core/last-room';
 import { RoomService } from '../../core/net/room';
 import { Settings } from '../../core/settings';
+import { DirectLinks } from '../direct-links/direct-links';
 import { Logo } from '../logo/logo';
 
 type JoinError = { key: string; params?: Record<string, string> };
@@ -34,6 +35,7 @@ type JoinError = { key: string; params?: Record<string, string> };
     MatSelectModule,
     TranslatePipe,
     Logo,
+    DirectLinks,
   ],
   templateUrl: './lobby.html',
   styleUrl: './lobby.scss',
