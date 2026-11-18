@@ -16,7 +16,7 @@ function persisted<T>(key: string, fallback: T): WritableSignal<T> {
 @Injectable({ providedIn: 'root' })
 export class Settings {
   readonly name = persisted('name', '');
-  readonly bitrate = persisted<number>('bitrate', BITRATES[0]);
+  readonly bitrate = persisted<number>('bitrate', 128_000);
   readonly headphoneMode = persisted('headphones', true);
   readonly microphoneId = persisted('microphone', '');
   readonly outputId = persisted('output', '');
