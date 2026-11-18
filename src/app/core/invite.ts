@@ -8,9 +8,17 @@ export type ParsedInvite = Partial<Invite> & { testTone: boolean };
 
 const ALPHABET = 'abcdefghijklmnopqrstuvwxyz0123456789';
 
+/** Bytes from here up would make the first characters a little more likely than the rest. */
+const UNBIASED_LIMIT = 256 - (256 % ALPHABET.length);
+
 export function randomId(length: number): string {
-  const bytes = crypto.getRandomValues(new Uint8Array(length));
-  return Array.from(bytes, (b) => ALPHABET[b % ALPHABET.length]).join('');
+  let id = '';
+  while (id.length < length) {
+    for (const byte of crypto.getRandomValues(new Uint8Array(length))) {
+      if (byte < UNBIASED_LIMIT && id.length < length) id += ALPHABET[byte % ALPHABET.length];
+    }
+  }
+  return id;
 }
 
 function toBase64Url(text: string): string {

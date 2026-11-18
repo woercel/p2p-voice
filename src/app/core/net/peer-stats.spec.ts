@@ -30,19 +30,34 @@ const base = {
 
 describe('readPeerStats', () => {
   it('derives bitrates from the previous sample', () => {
-    const { stats, sample } = readPeerStats(report(base), { at: 0, bytesIn: 0, bytesOut: 0 }, 1000);
+    const previous = { at: 0, bytesIn: 0, bytesOut: 0, packetsIn: 0, packetsLost: 0 };
+    const { stats, sample } = readPeerStats(report(base), previous, 1000);
     expect(stats.inKbps).toBe(1000);
     expect(stats.outKbps).toBe(500);
     expect(stats.rttMs).toBe(23);
     expect(stats.lossPercent).toBeCloseTo(1);
     expect(stats.route).toBe('direct');
-    expect(sample).toEqual({ at: 1000, bytesIn: 125_000, bytesOut: 62_500 });
+    expect(sample).toEqual({
+      at: 1000,
+      bytesIn: 125_000,
+      bytesOut: 62_500,
+      packetsIn: 990,
+      packetsLost: 10,
+    });
   });
 
-  it('has no bitrate without a previous sample', () => {
+  it('has no bitrate or loss without a previous sample', () => {
     const { stats } = readPeerStats(report(base), undefined, 1000);
     expect(stats.inKbps).toBeNull();
     expect(stats.outKbps).toBeNull();
+    expect(stats.lossPercent).toBeNull();
+  });
+
+  it('reports the loss of the last interval, not of the whole call', () => {
+    // A long clean call, then a second in which 30 of 100 packets went missing.
+    const previous = { at: 0, packetsIn: 100_000, packetsLost: 10 };
+    const now = { ...base, in: { ...base.in, packetsReceived: 100_070, packetsLost: 40 } };
+    expect(readPeerStats(report(now), previous, 1000).stats.lossPercent).toBeCloseTo(30);
   });
 
   it('detects relayed and IPv6 routes', () => {

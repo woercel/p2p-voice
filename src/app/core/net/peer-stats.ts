@@ -8,7 +8,13 @@ export type PeerStats = {
   route: Route | null;
 };
 
-export type StatsSample = { at: number; bytesIn?: number; bytesOut?: number };
+export type StatsSample = {
+  at: number;
+  bytesIn?: number;
+  bytesOut?: number;
+  packetsIn?: number;
+  packetsLost?: number;
+};
 
 type StatsEntry = {
   type: string;
@@ -39,6 +45,20 @@ function kbps(bytes: number | undefined, previous: number | undefined, elapsedMs
   return Math.max(0, Math.round(((bytes - previous) * 8) / elapsedMs));
 }
 
+/**
+ * Loss over the last interval, like the bitrates. The counters run from the start of the
+ * connection, so their totals would bury a dropout in a long call under everything before it.
+ */
+function lossPercent(inbound: StatsEntry | undefined, previous: StatsSample | undefined) {
+  const { packetsReceived, packetsLost } = inbound ?? {};
+  if (packetsReceived === undefined || packetsLost === undefined) return null;
+  if (previous?.packetsIn === undefined || previous.packetsLost === undefined) return null;
+  const received = Math.max(0, packetsReceived - previous.packetsIn);
+  // A late packet is counted lost first and received later, so the lost count can go down.
+  const lost = Math.max(0, packetsLost - previous.packetsLost);
+  return received + lost > 0 ? (lost / (received + lost)) * 100 : null;
+}
+
 export function readPeerStats(
   report: StatsReportLike,
   previous: StatsSample | undefined,
@@ -63,8 +83,6 @@ export function readPeerStats(
   }
 
   const elapsed = previous ? now - previous.at : 0;
-  const received = inbound?.packetsReceived ?? 0;
-  const lost = Math.max(0, inbound?.packetsLost ?? 0);
 
   let route: Route | null = null;
   if (pair) {
@@ -83,9 +101,15 @@ export function readPeerStats(
         pair?.currentRoundTripTime !== undefined
           ? Math.round(pair.currentRoundTripTime * 1000)
           : null,
-      lossPercent: received + lost > 0 ? (lost / (received + lost)) * 100 : null,
+      lossPercent: lossPercent(inbound, previous),
       route,
     },
-    sample: { at: now, bytesIn: inbound?.bytesReceived, bytesOut: outbound?.bytesSent },
+    sample: {
+      at: now,
+      bytesIn: inbound?.bytesReceived,
+      bytesOut: outbound?.bytesSent,
+      packetsIn: inbound?.packetsReceived,
+      packetsLost: inbound?.packetsLost,
+    },
   };
 }

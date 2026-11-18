@@ -97,6 +97,7 @@ export class RoomService {
   private searchTimer: ReturnType<typeof setTimeout> | undefined;
   private routing = false;
   private routeAgain = false;
+  private pollingStats = false;
   private joinedAt = 0;
   private presence: ChannelPresence | null = null;
 
@@ -145,6 +146,20 @@ export class RoomService {
     if (this.searching() || this.roster().some((peer) => peer.connecting)) return 'connecting';
     return 'connected';
   });
+  /**
+   * Everything the audio routing depends on, as one comparable value: who we hear, how loud,
+   * and whether there is playback to set. Stats arriving every second leave it unchanged.
+   */
+  private readonly routeInputs = computed(() => {
+    const state = this.channelState();
+    const own = this.channel();
+    return this.peerList()
+      .map((peer) => {
+        const audible = resolveChannel(state, peer.channel) === own;
+        return `${peer.id}:${audible}:${peer.volume}:${peer.hasAudio}`;
+      })
+      .join('|');
+  });
   private readonly ownInfo = computed<PeerInfo>(() => {
     const channel = this.channelState().channels.find((c) => c.id === this.channel());
     return {
@@ -164,8 +179,7 @@ export class RoomService {
       untracked(() => void this.infoAction?.send(info));
     });
     effect(() => {
-      this.channel();
-      this.peers();
+      this.routeInputs();
       untracked(() => void this.route());
     });
     effect(() => {
@@ -358,6 +372,8 @@ export class RoomService {
     runtime.playback?.dispose();
     runtime.playback = this.audio.createPlayback(stream);
     this.patchPeer(peerId, { hasAudio: true });
+    // A replaced stream leaves hasAudio as it was; its new playback still needs the right gain.
+    void this.route();
   }
 
   /**
@@ -523,17 +539,27 @@ export class RoomService {
       // Only now is it clear that a dropped peer is not coming back.
       if (gone.some((peer) => peer.lost)) this.audio.playCue('leave');
     }
+    // A slow round would otherwise overlap the next one and write older samples over newer.
+    if (this.pollingStats) return;
+    this.pollingStats = true;
     const updates = new Map<string, PeerStats>();
-    for (const [peerId, connection] of Object.entries(this.room.getPeers())) {
-      const runtime = this.runtime.get(peerId);
-      if (!runtime) continue;
-      try {
-        const { stats, sample } = readPeerStats(await connection.getStats(), runtime.sample, now);
-        runtime.sample = sample;
-        updates.set(peerId, stats);
-      } catch {
-        // Connection closed between listing and reading stats.
-      }
+    try {
+      await Promise.all(
+        Object.entries(this.room.getPeers()).map(async ([peerId, connection]) => {
+          const runtime = this.runtime.get(peerId);
+          if (!runtime) return;
+          try {
+            const report = await connection.getStats();
+            const { stats, sample } = readPeerStats(report, runtime.sample, performance.now());
+            runtime.sample = sample;
+            updates.set(peerId, stats);
+          } catch {
+            // Connection closed between listing and reading stats.
+          }
+        }),
+      );
+    } finally {
+      this.pollingStats = false;
     }
     this.peers.update((peers) => {
       const next = new Map(peers);
