@@ -23,9 +23,9 @@
   },
   "channel": {
     "lobby": "Lobby",
-    "group": "Group {{number}}",
+    "group": "Channel {{number}}",
     "join": "Join",
-    "delete": "Delete group"
+    "delete": "Delete channel"
   },
   "peer": {
     "anonymous": "Anonymous",
@@ -45,7 +45,7 @@
     "alone": "Nobody else is here yet. Share the invite link.",
     "searching": "Looking for others in the room…",
     "offline": "Connection lost. Reconnecting as soon as you are back online…",
-    "newGroup": "New group",
+    "newGroup": "New channel",
     "deleteTitle": "Delete {{name}}?",
     "deleteMessage": "Everyone in it moves back to the lobby.",
     "deleteConfirm": "Delete"
@@ -56,7 +56,7 @@
   },
   "self": {
     "youShort": "you",
-    "gate": "Voice threshold",
+    "gate": "Minimum volume",
     "gateTooltip": "Nothing below this level is sent",
     "gateOff": "Off",
     "gateOffShort": "off",
@@ -77,7 +77,7 @@
     "defaultMicrophone": "Default microphone",
     "output": "Output",
     "defaultOutput": "Default output",
-    "headphoneMode": "Headphone mode",
+    "headphoneMode": "Headphone mode (raw audio)",
     "headphoneHint": "Turns off echo cancellation, noise suppression and automatic gain for the cleanest sound. Turn it off when you use speakers, otherwise the others hear themselves.",
     "reopenFailed": "Could not open the microphone."
   },
@@ -86,12 +86,12 @@
     "title": "Join a room",
     "subtitle": "Browser to browser, Opus up to 510 kbit/s stereo, no accounts.",
     "name": "Your name",
-    "quality": "Quality you send",
-    "roomSettings": "Room settings",
-    "room": "Room",
-    "password": "Password",
-    "rendezvous": "Rendezvous",
-    "rendezvousHint": "Only used to find each other – audio always flows directly. Everyone in a room needs the same one; it is part of the invite link.",
+    "quality": "Your send quality",
+    "roomSettings": "Choose room",
+    "room": "Room name",
+    "password": "Password (optional)",
+    "rendezvous": "Connection method",
+    "rendezvousHint": "Used to find each other; audio still flows directly. Everyone needs the same one; it is part of the invite link.",
     "join": "Join room"
   },
   "quality": {
@@ -101,9 +101,9 @@
     "standard": "{{kbps}} kbit/s – typical voice chat"
   },
   "rendezvous": {
-    "nostr": "Nostr relays",
-    "torrent": "BitTorrent trackers",
-    "mqtt": "MQTT brokers"
+    "nostr": "Nostr (recommended)",
+    "torrent": "BitTorrent",
+    "mqtt": "MQTT"
   },
   "join": {
     "micDenied": "Microphone access was denied.",

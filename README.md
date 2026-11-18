@@ -8,8 +8,8 @@ Live: https://woercel.github.io/p2p-voice/
 
 ## Features
 
-- Rooms via invite link (room name, password and rendezvous are encoded in one token in the URL hash)
-- Lobby plus groups that anyone can create and delete; audio only flows within a channel
+- Rooms via invite link (room name, password and connection method are encoded in one token in the URL hash)
+- Lobby plus channels that anyone can create and delete; audio only flows within a channel
 - Voice threshold (noise gate in an AudioWorklet), headphone mode without browser filters
 - Speaking indicator, per-person volume, connection stats
 - Configurable mute key, German and English, light/dark/system theme

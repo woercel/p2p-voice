@@ -23,9 +23,9 @@
   },
   "channel": {
     "lobby": "Lobby",
-    "group": "Gruppe {{number}}",
+    "group": "Kanal {{number}}",
     "join": "Beitreten",
-    "delete": "Gruppe löschen"
+    "delete": "Kanal löschen"
   },
   "peer": {
     "anonymous": "Anonym",
@@ -45,7 +45,7 @@
     "alone": "Noch niemand da. Schick den Einladungslink rum.",
     "searching": "Suche nach anderen im Raum…",
     "offline": "Verbindung verloren. Verbinde neu, sobald du wieder online bist…",
-    "newGroup": "Neue Gruppe",
+    "newGroup": "Neuer Kanal",
     "deleteTitle": "{{name}} löschen?",
     "deleteMessage": "Alle darin landen wieder in der Lobby.",
     "deleteConfirm": "Löschen"
@@ -56,7 +56,7 @@
   },
   "self": {
     "youShort": "du",
-    "gate": "Sprach-Schwelle",
+    "gate": "Mindestlautstärke",
     "gateTooltip": "Unter diesem Pegel wird nichts gesendet",
     "gateOff": "Aus",
     "gateOffShort": "aus",
@@ -77,7 +77,7 @@
     "defaultMicrophone": "Standard-Mikrofon",
     "output": "Ausgabe",
     "defaultOutput": "Standard-Ausgabe",
-    "headphoneMode": "Kopfhörer-Modus",
+    "headphoneMode": "Kopfhörer-Modus (rohes Signal)",
     "headphoneHint": "Schaltet Echo-Unterdrückung, Rauschfilter und Auto-Lautstärke aus – für den saubersten Klang. Mit Lautsprechern ausschalten, sonst hören sich die anderen selbst.",
     "reopenFailed": "Das Mikrofon konnte nicht geöffnet werden."
   },
@@ -86,12 +86,12 @@
     "title": "Raum beitreten",
     "subtitle": "Von Browser zu Browser, Opus bis 510 kbit/s Stereo, ohne Accounts.",
     "name": "Dein Name",
-    "quality": "Qualität, die du sendest",
-    "roomSettings": "Raum-Einstellungen",
-    "room": "Raum",
-    "password": "Passwort",
-    "rendezvous": "Treffpunkt",
-    "rendezvousHint": "Nur zum Finden – das Audio läuft immer direkt. Alle im Raum brauchen denselben; er steckt im Einladungslink.",
+    "quality": "Deine Sendequalität",
+    "roomSettings": "Raum wählen",
+    "room": "Raumname",
+    "password": "Passwort (optional)",
+    "rendezvous": "Verbindungsweg",
+    "rendezvousHint": "Darüber findet ihr euch, das Audio läuft trotzdem direkt. Alle brauchen denselben, er steckt im Einladungslink.",
     "join": "Raum beitreten"
   },
   "quality": {
@@ -101,9 +101,9 @@
     "standard": "{{kbps}} kbit/s – übliches Voice-Chat-Niveau"
   },
   "rendezvous": {
-    "nostr": "Nostr-Relays",
-    "torrent": "BitTorrent-Tracker",
-    "mqtt": "MQTT-Broker"
+    "nostr": "Nostr (empfohlen)",
+    "torrent": "BitTorrent",
+    "mqtt": "MQTT"
   },
   "join": {
     "micDenied": "Der Zugriff aufs Mikrofon wurde verweigert.",
