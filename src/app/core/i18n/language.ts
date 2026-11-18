@@ -1,3 +1,6 @@
+import { DOCUMENT, Injectable, computed, inject } from '@angular/core';
+import { InterpolationParameters, TranslateService } from '@ngx-translate/core';
+import { firstValueFrom } from 'rxjs';
 import { readStored, writeStored } from '../storage';
 
 export type Language = 'de' | 'en';
@@ -10,11 +13,28 @@ export function resolveLanguage(): Language {
   return navigator.languages.some((l) => l.toLowerCase().startsWith('de')) ? 'de' : 'en';
 }
 
-export const currentLanguage = (): Language =>
-  document.documentElement.lang === 'de' ? 'de' : 'en';
+@Injectable({ providedIn: 'root' })
+export class I18n {
+  private readonly translate = inject(TranslateService);
+  private readonly document = inject(DOCUMENT);
 
-/** Translations are applied before bootstrap, so switching needs a reload (the invite hash survives). */
-export function switchLanguage(language: Language): void {
-  writeStored('language', language);
-  location.reload();
+  readonly language = computed<Language>(() =>
+    this.translate.currentLang() === 'de' ? 'de' : 'en',
+  );
+
+  /** Reads the current language, so computed texts follow a switch. */
+  text(key: string, params?: InterpolationParameters): string {
+    this.language();
+    return String(this.translate.instant(key, params));
+  }
+
+  async use(language: Language): Promise<void> {
+    await firstValueFrom(this.translate.use(language));
+    this.document.documentElement.lang = language;
+  }
+
+  async switch(language: Language): Promise<void> {
+    writeStored('language', language);
+    await this.use(language);
+  }
 }

@@ -10,10 +10,11 @@ import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { MatSliderModule } from '@angular/material/slider';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { TranslatePipe } from '@ngx-translate/core';
 import { AudioEngine } from '../../core/audio/audio-engine';
 import { GATE_OFF_DB, isGateEnabled, meterPercent } from '../../core/audio/levels';
 import { MuteHotkey } from '../../core/hotkey/mute-hotkey';
-import { Language, currentLanguage, switchLanguage } from '../../core/i18n/language';
+import { I18n, Language } from '../../core/i18n/language';
 import { RoomService } from '../../core/net/room';
 import { BITRATES, Settings, ThemeMode } from '../../core/settings';
 import { LevelMeter } from '../level-meter/level-meter';
@@ -31,6 +32,7 @@ import { LevelMeter } from '../level-meter/level-meter';
     MatSlideToggleModule,
     MatSliderModule,
     MatTooltipModule,
+    TranslatePipe,
     LevelMeter,
   ],
   templateUrl: './settings-panel.html',
@@ -45,28 +47,32 @@ export class SettingsPanel {
   protected readonly hotkey = inject(MuteHotkey);
   protected readonly room = inject(RoomService);
   private readonly snackBar = inject(MatSnackBar);
+  protected readonly i18n = inject(I18n);
 
-  protected readonly language = currentLanguage();
   protected readonly languages: { value: Language; label: string }[] = [
     { value: 'de', label: 'Deutsch' },
     { value: 'en', label: 'English' },
   ];
-  protected readonly themes: { value: ThemeMode; icon: string; label: string }[] = [
-    { value: 'system', icon: 'brightness_auto', label: $localize`:@@theme.system:System` },
-    { value: 'light', icon: 'light_mode', label: $localize`:@@theme.light:Light` },
-    { value: 'dark', icon: 'dark_mode', label: $localize`:@@theme.dark:Dark` },
+  protected readonly themes: { value: ThemeMode; icon: string }[] = [
+    { value: 'system', icon: 'brightness_auto' },
+    { value: 'light', icon: 'light_mode' },
+    { value: 'dark', icon: 'dark_mode' },
   ];
-  protected readonly bitrates = BITRATES.map((value) => ({ value, label: bitrateLabel(value) }));
+  protected readonly bitrates = BITRATES.map((value) => ({
+    value,
+    key: bitrateKey(value),
+    params: { kbps: value / 1000 },
+  }));
 
   protected readonly joined = computed(() => this.room.status() !== 'idle');
   protected readonly gateOffDb = GATE_OFF_DB;
   protected readonly gateEnabled = computed(() => isGateEnabled(this.settings.gateDb()));
   protected readonly thresholdPercent = computed(() => meterPercent(this.settings.gateDb()));
   protected readonly gateLabel = computed(() =>
-    this.gateEnabled() ? `${this.settings.gateDb()} dB` : $localize`:@@self.gateOff:Off`,
+    this.gateEnabled() ? `${this.settings.gateDb()} dB` : this.i18n.text('self.gateOff'),
   );
   protected readonly formatGate = (db: number): string =>
-    isGateEnabled(db) ? `${db}` : $localize`:@@self.gateOffShort:off`;
+    isGateEnabled(db) ? `${db}` : this.i18n.text('self.gateOffShort');
 
   protected changeMicrophone(id: string): void {
     this.settings.microphoneId.set(id);
@@ -78,33 +84,24 @@ export class SettingsPanel {
     this.reopen();
   }
 
-  protected changeLanguage(language: Language): void {
-    if (language !== this.language) switchLanguage(language);
-  }
-
   private reopen(): void {
     this.audio
       .reopenInput()
       .catch(() =>
-        this.snackBar.open(
-          $localize`:@@devices.reopenFailed:Could not open the microphone.`,
-          undefined,
-          { duration: 4000 },
-        ),
+        this.snackBar.open(this.i18n.text('devices.reopenFailed'), undefined, { duration: 4000 }),
       );
   }
 }
 
-function bitrateLabel(bitrate: number): string {
-  const kbps = bitrate / 1000;
+function bitrateKey(bitrate: number): string {
   switch (bitrate) {
     case 510_000:
-      return $localize`:@@quality.max:${kbps}:kbps: kbit/s – maximum`;
+      return 'quality.max';
     case 256_000:
-      return $localize`:@@quality.veryHigh:${kbps}:kbps: kbit/s – very high`;
+      return 'quality.veryHigh';
     case 128_000:
-      return $localize`:@@quality.high:${kbps}:kbps: kbit/s – high, transparent`;
+      return 'quality.high';
     default:
-      return $localize`:@@quality.standard:${kbps}:kbps: kbit/s – typical voice chat`;
+      return 'quality.standard';
   }
 }

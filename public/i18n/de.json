@@ -1,0 +1,108 @@
+{
+  "toolbar": {
+    "language": "Sprache",
+    "theme": "Design",
+    "copyInvite": "Link kopieren",
+    "settings": "Einstellungen"
+  },
+  "theme": {
+    "system": "System",
+    "light": "Hell",
+    "dark": "Dunkel"
+  },
+  "key": {
+    "ctrl": "Strg",
+    "alt": "Alt",
+    "altGr": "Alt Gr",
+    "shift": "Shift",
+    "meta": "Win",
+    "space": "Leertaste",
+    "left": "links",
+    "right": "rechts",
+    "numpad": "Num"
+  },
+  "channel": {
+    "lobby": "Lobby",
+    "group": "Gruppe {{number}}",
+    "join": "Beitreten",
+    "delete": "Gruppe löschen"
+  },
+  "peer": {
+    "anonymous": "Anonym",
+    "connecting": "Verbinde…"
+  },
+  "stats": {
+    "loss": "{{loss}} % Verlust",
+    "relay": "über Relay",
+    "direct": "direkt",
+    "directIpv6": "direkt (IPv6)"
+  },
+  "call": {
+    "copied": "Einladungslink kopiert",
+    "alone": "Noch niemand da. Schick den Einladungslink rum.",
+    "newGroup": "Neue Gruppe",
+    "deleteTitle": "{{name}} löschen?",
+    "deleteMessage": "Alle darin landen wieder in der Lobby.",
+    "deleteConfirm": "Löschen"
+  },
+  "dock": {
+    "mute": "Stumm schalten ({{key}})",
+    "unmute": "Stumm aus ({{key}})"
+  },
+  "self": {
+    "youShort": "du",
+    "gate": "Sprach-Schwelle",
+    "gateTooltip": "Unter diesem Pegel wird nichts gesendet",
+    "gateOff": "Aus",
+    "gateOffShort": "aus",
+    "muteKey": "Stumm-Taste",
+    "pressKey": "Taste drücken… (Esc bricht ab)",
+    "leave": "Verlassen"
+  },
+  "settings": {
+    "title": "Einstellungen",
+    "close": "Schließen",
+    "qualityHint": "Gilt für neue Verbindungen"
+  },
+  "dialog": {
+    "cancel": "Abbrechen"
+  },
+  "devices": {
+    "microphone": "Aufnahme",
+    "defaultMicrophone": "Standard-Mikrofon",
+    "output": "Ausgabe",
+    "defaultOutput": "Standard-Ausgabe",
+    "headphoneMode": "Kopfhörer-Modus",
+    "headphoneHint": "Schaltet Echo-Unterdrückung, Rauschfilter und Auto-Lautstärke aus – für den saubersten Klang. Mit Lautsprechern ausschalten, sonst hören sich die anderen selbst.",
+    "reopenFailed": "Das Mikrofon konnte nicht geöffnet werden."
+  },
+  "lobby": {
+    "invitedTitle": "Du wurdest eingeladen",
+    "title": "Raum beitreten",
+    "subtitle": "Von Browser zu Browser, Opus bis 510 kbit/s Stereo, ohne Accounts.",
+    "name": "Dein Name",
+    "quality": "Qualität, die du sendest",
+    "roomSettings": "Raum-Einstellungen",
+    "room": "Raum",
+    "password": "Passwort",
+    "rendezvous": "Treffpunkt",
+    "rendezvousHint": "Nur zum Finden – das Audio läuft immer direkt. Alle im Raum brauchen denselben; er steckt im Einladungslink.",
+    "join": "Raum beitreten"
+  },
+  "quality": {
+    "max": "{{kbps}} kbit/s – Maximum",
+    "veryHigh": "{{kbps}} kbit/s – sehr hoch",
+    "high": "{{kbps}} kbit/s – hoch, transparent",
+    "standard": "{{kbps}} kbit/s – übliches Voice-Chat-Niveau"
+  },
+  "rendezvous": {
+    "nostr": "Nostr-Relays",
+    "torrent": "BitTorrent-Tracker",
+    "mqtt": "MQTT-Broker"
+  },
+  "join": {
+    "micDenied": "Der Zugriff aufs Mikrofon wurde verweigert.",
+    "micMissing": "Kein Mikrofon gefunden.",
+    "failed": "Beitreten fehlgeschlagen: {{detail}}"
+  }
+}

@@ -1,20 +1,21 @@
 import { Channel, LOBBY } from '../channels/channel-state';
 import { KeyLabels } from '../hotkey/key-binding';
+import { I18n } from './language';
 
-export const keyLabels = (): KeyLabels => ({
-  ctrl: $localize`:@@key.ctrl:Ctrl`,
-  alt: $localize`:@@key.alt:Alt`,
-  altGr: $localize`:@@key.altGr:AltGr`,
-  shift: $localize`:@@key.shift:Shift`,
-  meta: $localize`:@@key.meta:Win`,
-  space: $localize`:@@key.space:Space`,
-  left: $localize`:@@key.left:left`,
-  right: $localize`:@@key.right:right`,
-  numpad: $localize`:@@key.numpad:Num`,
+export const keyLabels = (i18n: I18n): KeyLabels => ({
+  ctrl: i18n.text('key.ctrl'),
+  alt: i18n.text('key.alt'),
+  altGr: i18n.text('key.altGr'),
+  shift: i18n.text('key.shift'),
+  meta: i18n.text('key.meta'),
+  space: i18n.text('key.space'),
+  left: i18n.text('key.left'),
+  right: i18n.text('key.right'),
+  numpad: i18n.text('key.numpad'),
 });
 
-export function channelName(channel: Channel | typeof LOBBY): string {
+export function channelName(i18n: I18n, channel: Channel | typeof LOBBY): string {
   return channel === LOBBY
-    ? $localize`:@@channel.lobby:Lobby`
-    : $localize`:@@channel.group:Group ${channel.number}:number:`;
+    ? i18n.text('channel.lobby')
+    : i18n.text('channel.group', { number: channel.number });
 }

@@ -14,17 +14,15 @@
       @if (room.status() === 'joined') {
         <button matButton="tonal" class="invite" (click)="copyInvite()">
           <mat-icon>link</mat-icon>
-          <span i18n="@@toolbar.copyInvite">Copy link</span>
+          <span>{{ 'toolbar.copyInvite' | translate }}</span>
         </button>
       }
 
       <button
         matIconButton
         (click)="settings.toggle()"
-        matTooltip="Settings"
-        i18n-matTooltip="@@toolbar.settings"
-        aria-label="Settings"
-        i18n-aria-label="@@toolbar.settings"
+        [matTooltip]="'toolbar.settings' | translate"
+        [attr.aria-label]="'toolbar.settings' | translate"
       >
         <mat-icon>tune</mat-icon>
       </button>

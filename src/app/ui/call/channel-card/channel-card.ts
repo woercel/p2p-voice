@@ -2,6 +2,7 @@ import { ChangeDetectionStrategy, Component, computed, inject, input, output } f
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { TranslatePipe, translate } from '@ngx-translate/core';
 import { AudioEngine } from '../../../core/audio/audio-engine';
 import { isGateEnabled } from '../../../core/audio/levels';
 import { Peer } from '../../../core/net/room';
@@ -21,14 +22,14 @@ export type ChannelView = {
 /** A channel surface; clicking anywhere on it moves you there. */
 @Component({
   selector: 'app-channel-card',
-  imports: [MatButtonModule, MatIconModule, MatTooltipModule, MemberRow, PeerTile],
+  imports: [MatButtonModule, MatIconModule, MatTooltipModule, TranslatePipe, MemberRow, PeerTile],
   templateUrl: './channel-card.html',
   styleUrl: './channel-card.scss',
   host: {
     '[class.here]': 'channel().here',
     '[attr.role]': 'channel().here ? null : "button"',
     '[attr.tabindex]': 'channel().here ? null : 0',
-    '[attr.aria-label]': 'channel().here ? null : joinLabel + " " + channel().name',
+    '[attr.aria-label]': 'channel().here ? null : joinLabel() + " " + channel().name',
     '(click)': 'join($event)',
     '(keydown.enter)': 'join($event)',
     '(keydown.space)': 'join($event)',
@@ -47,7 +48,7 @@ export class ChannelCard {
     const db = this.settings.gateDb();
     return isGateEnabled(db) ? db : null;
   });
-  protected readonly joinLabel = $localize`:@@channel.join:Join`;
+  protected readonly joinLabel = translate('channel.join');
 
   protected join(event: Event): void {
     if (this.channel().here) return;

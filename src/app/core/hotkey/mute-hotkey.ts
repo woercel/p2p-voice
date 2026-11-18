@@ -1,6 +1,7 @@
 import { DOCUMENT, Injectable, computed, inject, signal } from '@angular/core';
 import { AudioEngine } from '../audio/audio-engine';
 import { keyLabels } from '../i18n/labels';
+import { I18n } from '../i18n/language';
 import { RoomService } from '../net/room';
 import { Settings } from '../settings';
 import {
@@ -20,10 +21,13 @@ export class MuteHotkey {
   private readonly settings = inject(Settings);
   private readonly audio = inject(AudioEngine);
   private readonly room = inject(RoomService);
+  private readonly i18n = inject(I18n);
   private pendingModifier: string | null = null;
 
   readonly capturing = signal(false);
-  readonly label = computed(() => describeBinding(this.settings.muteKey(), keyLabels()));
+  readonly label = computed(() =>
+    describeBinding(this.settings.muteKey(), keyLabels(this.i18n)),
+  );
 
   constructor() {
     const document = inject(DOCUMENT);

@@ -1,16 +1,10 @@
 <app-logo [animated]="joining()" />
 
-@if (invited) {
-  <h1 i18n="@@lobby.invitedTitle">You've been invited</h1>
-} @else {
-  <h1 i18n="@@lobby.title">Join a room</h1>
-}
-<p class="subtitle" i18n="@@lobby.subtitle">
-  Browser to browser, Opus up to 510 kbit/s stereo, no accounts.
-</p>
+<h1>{{ (invited ? 'lobby.invitedTitle' : 'lobby.title') | translate }}</h1>
+<p class="subtitle">{{ 'lobby.subtitle' | translate }}</p>
 
 <mat-form-field>
-  <mat-label i18n="@@lobby.name">Your name</mat-label>
+  <mat-label>{{ 'lobby.name' | translate }}</mat-label>
   <input matInput maxlength="32" [(ngModel)]="settings.name" (keydown.enter)="join()" />
 </mat-form-field>
 
@@ -23,36 +17,33 @@
   @if (joining()) {
     <mat-spinner diameter="18" />
   }
-  <span i18n="@@lobby.join">Join room</span>
+  <span>{{ 'lobby.join' | translate }}</span>
 </button>
 
-@if (error(); as message) {
-  <p class="error" role="alert">{{ message }}</p>
+@if (error(); as error) {
+  <p class="error" role="alert">{{ error.key | translate: error.params }}</p>
 }
 
 <mat-expansion-panel class="room-settings">
   <mat-expansion-panel-header>
-    <mat-panel-title i18n="@@lobby.roomSettings">Room settings</mat-panel-title>
+    <mat-panel-title>{{ 'lobby.roomSettings' | translate }}</mat-panel-title>
   </mat-expansion-panel-header>
 
   <mat-form-field>
-    <mat-label i18n="@@lobby.room">Room</mat-label>
+    <mat-label>{{ 'lobby.room' | translate }}</mat-label>
     <input matInput spellcheck="false" [(ngModel)]="roomName" />
   </mat-form-field>
   <mat-form-field>
-    <mat-label i18n="@@lobby.password">Password</mat-label>
+    <mat-label>{{ 'lobby.password' | translate }}</mat-label>
     <input matInput spellcheck="false" [(ngModel)]="password" />
   </mat-form-field>
   <mat-form-field>
-    <mat-label i18n="@@lobby.rendezvous">Rendezvous</mat-label>
+    <mat-label>{{ 'lobby.rendezvous' | translate }}</mat-label>
     <mat-select [(ngModel)]="via">
-      @for (option of rendezvous; track option.value) {
-        <mat-option [value]="option.value">{{ option.label }}</mat-option>
+      @for (option of rendezvous; track option) {
+        <mat-option [value]="option">{{ 'rendezvous.' + option | translate }}</mat-option>
       }
     </mat-select>
-    <mat-hint i18n="@@lobby.rendezvousHint"
-      >Only used to find each other – audio always flows directly. Everyone in a room needs the same
-      one; it is part of the invite link.</mat-hint
-    >
+    <mat-hint>{{ 'lobby.rendezvousHint' | translate }}</mat-hint>
   </mat-form-field>
 </mat-expansion-panel>

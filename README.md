@@ -8,7 +8,7 @@ Live: https://woercel.github.io/p2p-voice/
 
 ## Features
 
-- Rooms via invite link (room name, password and rendezvous live in the URL hash)
+- Rooms via invite link (room name, password and rendezvous are encoded in one token in the URL hash)
 - Lobby plus groups that anyone can create and delete; audio only flows within a channel
 - Voice threshold (noise gate in an AudioWorklet), headphone mode without browser filters
 - Speaking indicator, per-person volume, connection stats
@@ -27,9 +27,10 @@ Append `&tone=1` to an invite link to send a stereo test tone instead of the mic
 
 ### Translations
 
-Texts use Angular i18n with fixed IDs (`i18n="@@id"`, `` $localize`:@@id:…` ``). After changing
-texts run `npm run i18n`, then update `src/locale/de.ts`; a test fails if IDs or placeholders
-don't match. Translations are loaded at runtime before bootstrap, so there is a single build.
+Texts use [ngx-translate](https://ngx-translate.org/) with keys like `lobby.title`: the `translate`
+pipe in templates, `I18n.text()` in code. Translations live in `public/i18n/en.json` and `de.json`
+and are loaded over HTTP, so the language switches instantly, even during a call. A test fails if
+the two files differ in keys or placeholders.
 
 ## Structure
 
@@ -37,7 +38,7 @@ don't match. Translations are loaded at runtime before bootstrap, so there is a 
 src/app/core/        services and pure logic (audio, network, channels, hotkey, i18n, theme)
 src/app/ui/          components (lobby, call, channel card, peer tile, level meter …)
 public/worklets/     noise gate AudioWorklet
-src/locale/          extracted messages and German translation
+public/i18n/         English and German translations
 ```
 
 ## Deployment

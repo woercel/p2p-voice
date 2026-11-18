@@ -6,7 +6,9 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { AudioEngine } from '../../core/audio/audio-engine';
 import { Channel, LOBBY, resolveChannel } from '../../core/channels/channel-state';
 import { MuteHotkey } from '../../core/hotkey/mute-hotkey';
+import { TranslatePipe } from '@ngx-translate/core';
 import { channelName } from '../../core/i18n/labels';
+import { I18n } from '../../core/i18n/language';
 import { RoomService } from '../../core/net/room';
 import { Settings } from '../../core/settings';
 import { ConfirmData, ConfirmDialog } from '../confirm-dialog/confirm-dialog';
@@ -14,7 +16,7 @@ import { ChannelCard, ChannelView } from './channel-card/channel-card';
 
 @Component({
   selector: 'app-call',
-  imports: [MatButtonModule, MatIconModule, MatTooltipModule, ChannelCard],
+  imports: [MatButtonModule, MatIconModule, MatTooltipModule, TranslatePipe, ChannelCard],
   templateUrl: './call.html',
   styleUrl: './call.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -25,17 +27,17 @@ export class Call {
   protected readonly hotkey = inject(MuteHotkey);
   private readonly settings = inject(Settings);
   private readonly dialog = inject(MatDialog);
+  private readonly i18n = inject(I18n);
 
   protected readonly selfName = computed(
-    () => this.settings.name().trim() || $localize`:@@peer.anonymous:Anonymous`,
+    () => this.settings.name().trim() || this.i18n.text('peer.anonymous'),
   );
 
-  protected readonly muteLabel = computed(() => {
-    const key = this.hotkey.label();
-    return this.audio.muted()
-      ? $localize`:@@dock.unmute:Unmute (${key}:key:)`
-      : $localize`:@@dock.mute:Mute (${key}:key:)`;
-  });
+  protected readonly muteLabel = computed(() =>
+    this.i18n.text(this.audio.muted() ? 'dock.unmute' : 'dock.mute', {
+      key: this.hotkey.label(),
+    }),
+  );
 
   protected readonly channels = computed<ChannelView[]>(() => {
     const state = this.room.channelState();
@@ -48,7 +50,7 @@ export class Call {
       const here = id === own;
       return {
         id,
-        name: channelName(channel),
+        name: channelName(this.i18n, channel),
         members,
         here,
         count: members.length + (here ? 1 : 0),
@@ -67,9 +69,9 @@ export class Call {
       return;
     }
     const data: ConfirmData = {
-      title: $localize`:@@call.deleteTitle:Delete ${channel.name}:name:?`,
-      message: $localize`:@@call.deleteMessage:Everyone in it moves back to the lobby.`,
-      confirm: $localize`:@@call.deleteConfirm:Delete`,
+      title: this.i18n.text('call.deleteTitle', { name: channel.name }),
+      message: this.i18n.text('call.deleteMessage'),
+      confirm: this.i18n.text('call.deleteConfirm'),
     };
     this.dialog
       .open(ConfirmDialog, { data })

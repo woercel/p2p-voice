@@ -1,17 +1,18 @@
 import { ChangeDetectionStrategy, Component, computed, input, output } from '@angular/core';
 import { MatIconModule } from '@angular/material/icon';
+import { TranslatePipe } from '@ngx-translate/core';
 import { LevelMeter } from '../../level-meter/level-meter';
 
 /** One person in a channel. Looks the same for yourself and everybody else. */
 @Component({
   selector: 'app-member-row',
-  imports: [MatIconModule, LevelMeter],
+  imports: [MatIconModule, TranslatePipe, LevelMeter],
   template: `
     <span class="avatar">{{ initial() }}</span>
     <span class="name">
       {{ name() }}
       @if (self()) {
-        <span class="you" i18n="@@self.youShort">you</span>
+        <span class="you">{{ 'self.youShort' | translate }}</span>
       }
     </span>
     @if (!away()) {

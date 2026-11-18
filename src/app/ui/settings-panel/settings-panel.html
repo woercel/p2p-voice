@@ -1,30 +1,25 @@
 <div class="head">
-  <h2 i18n="@@settings.title">Settings</h2>
-  <button
-    matIconButton
-    (click)="close.emit()"
-    aria-label="Close"
-    i18n-aria-label="@@settings.close"
-  >
+  <h2>{{ 'settings.title' | translate }}</h2>
+  <button matIconButton (click)="close.emit()" [attr.aria-label]="'settings.close' | translate">
     <mat-icon>close</mat-icon>
   </button>
 </div>
 
 <section>
   <mat-form-field>
-    <mat-label i18n="@@lobby.name">Your name</mat-label>
+    <mat-label>{{ 'lobby.name' | translate }}</mat-label>
     <input matInput maxlength="32" [(ngModel)]="settings.name" />
   </mat-form-field>
 
   <mat-form-field>
-    <mat-label i18n="@@lobby.quality">Quality you send</mat-label>
+    <mat-label>{{ 'lobby.quality' | translate }}</mat-label>
     <mat-select [(ngModel)]="settings.bitrate">
       @for (option of bitrates; track option.value) {
-        <mat-option [value]="option.value">{{ option.label }}</mat-option>
+        <mat-option [value]="option.value">{{ option.key | translate: option.params }}</mat-option>
       }
     </mat-select>
     @if (joined()) {
-      <mat-hint i18n="@@settings.qualityHint">Applies to new connections</mat-hint>
+      <mat-hint>{{ 'settings.qualityHint' | translate }}</mat-hint>
     }
   </mat-form-field>
 </section>
@@ -32,9 +27,9 @@
 <section>
   @if (audio.canSelectOutput) {
     <mat-form-field>
-      <mat-label i18n="@@devices.output">Output</mat-label>
+      <mat-label>{{ 'devices.output' | translate }}</mat-label>
       <mat-select [(ngModel)]="settings.outputId">
-        <mat-option value="" i18n="@@devices.defaultOutput">Default output</mat-option>
+        <mat-option value="">{{ 'devices.defaultOutput' | translate }}</mat-option>
         @for (device of audio.outputs(); track device.deviceId) {
           <mat-option [value]="device.deviceId">{{ device.label || device.deviceId }}</mat-option>
         }
@@ -43,9 +38,9 @@
   }
 
   <mat-form-field>
-    <mat-label i18n="@@devices.microphone">Input</mat-label>
+    <mat-label>{{ 'devices.microphone' | translate }}</mat-label>
     <mat-select [ngModel]="settings.microphoneId()" (ngModelChange)="changeMicrophone($event)">
-      <mat-option value="" i18n="@@devices.defaultMicrophone">Default microphone</mat-option>
+      <mat-option value="">{{ 'devices.defaultMicrophone' | translate }}</mat-option>
       @for (device of audio.inputs(); track device.deviceId) {
         <mat-option [value]="device.deviceId">{{ device.label || device.deviceId }}</mat-option>
       }
@@ -54,13 +49,9 @@
 
   <div class="gate">
     <div class="row">
-      <span
-        class="label"
-        matTooltip="Nothing below this level is sent"
-        i18n-matTooltip="@@self.gateTooltip"
-        i18n="@@self.gate"
-        >Voice threshold</span
-      >
+      <span class="label" [matTooltip]="'self.gateTooltip' | translate">{{
+        'self.gate' | translate
+      }}</span>
       <span class="value">{{ gateLabel() }}</span>
     </div>
     <div
@@ -82,23 +73,17 @@
     <mat-slide-toggle
       [ngModel]="settings.headphoneMode()"
       (ngModelChange)="changeHeadphoneMode($event)"
-      i18n="@@devices.headphoneMode"
-      >Headphone mode</mat-slide-toggle
+      >{{ 'devices.headphoneMode' | translate }}</mat-slide-toggle
     >
-    <mat-icon
-      class="info"
-      matTooltip="Turns off echo cancellation, noise suppression and automatic gain for the cleanest sound. Turn it off when you use speakers, otherwise the others hear themselves."
-      i18n-matTooltip="@@devices.headphoneHint"
-      >info</mat-icon
-    >
+    <mat-icon class="info" [matTooltip]="'devices.headphoneHint' | translate">info</mat-icon>
   </div>
 
   <div class="row">
-    <span class="label" i18n="@@self.muteKey">Mute key</span>
+    <span class="label">{{ 'self.muteKey' | translate }}</span>
     <button matButton (click)="hotkey.startCapture()">
       <kbd>
         @if (hotkey.capturing()) {
-          <ng-container i18n="@@self.pressKey">Press a key… (Esc cancels)</ng-container>
+          {{ 'self.pressKey' | translate }}
         } @else {
           {{ hotkey.label() }}
         }
@@ -109,7 +94,7 @@
 
 <section>
   <div class="row">
-    <span class="label" i18n="@@toolbar.theme">Theme</span>
+    <span class="label">{{ 'toolbar.theme' | translate }}</span>
     <mat-button-toggle-group
       hideSingleSelectionIndicator
       [ngModel]="settings.theme()"
@@ -118,8 +103,8 @@
       @for (option of themes; track option.value) {
         <mat-button-toggle
           [value]="option.value"
-          [matTooltip]="option.label"
-          [aria-label]="option.label"
+          [matTooltip]="'theme.' + option.value | translate"
+          [aria-label]="'theme.' + option.value | translate"
         >
           <mat-icon>{{ option.icon }}</mat-icon>
         </mat-button-toggle>
@@ -128,14 +113,11 @@
   </div>
 
   <mat-form-field>
-    <mat-label i18n="@@toolbar.language">Language</mat-label>
-    <mat-select [ngModel]="language" (ngModelChange)="changeLanguage($event)" [disabled]="joined()">
+    <mat-label>{{ 'toolbar.language' | translate }}</mat-label>
+    <mat-select [ngModel]="i18n.language()" (ngModelChange)="i18n.switch($event)">
       @for (option of languages; track option.value) {
         <mat-option [value]="option.value">{{ option.label }}</mat-option>
       }
     </mat-select>
-    @if (joined()) {
-      <mat-hint i18n="@@settings.languageHint">Can be changed outside a room</mat-hint>
-    }
   </mat-form-field>
 </section>

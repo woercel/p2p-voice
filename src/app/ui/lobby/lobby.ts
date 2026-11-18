@@ -6,10 +6,13 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSelectModule } from '@angular/material/select';
+import { TranslatePipe } from '@ngx-translate/core';
 import { RENDEZVOUS, Rendezvous, inviteHash, parseInvite, randomId } from '../../core/invite';
 import { RoomService } from '../../core/net/room';
 import { Settings } from '../../core/settings';
 import { Logo } from '../logo/logo';
+
+type JoinError = { key: string; params?: Record<string, string> };
 
 @Component({
   selector: 'app-lobby',
@@ -21,6 +24,7 @@ import { Logo } from '../logo/logo';
     MatInputModule,
     MatProgressSpinnerModule,
     MatSelectModule,
+    TranslatePipe,
     Logo,
   ],
   templateUrl: './lobby.html',
@@ -37,12 +41,8 @@ export class Lobby {
   protected readonly password = signal(this.parsed.password ?? randomId(16));
   protected readonly via = signal<Rendezvous>(this.parsed.via ?? 'nostr');
   protected readonly joining = computed(() => this.room.status() === 'joining');
-  protected readonly error = signal<string | null>(null);
-
-  protected readonly rendezvous = RENDEZVOUS.map((value) => ({
-    value,
-    label: rendezvousLabel(value),
-  }));
+  protected readonly error = signal<JoinError | null>(null);
+  protected readonly rendezvous = RENDEZVOUS;
 
   protected async join(): Promise<void> {
     const room = this.roomName().trim();
@@ -53,29 +53,18 @@ export class Lobby {
       await this.room.join(invite, this.parsed.testTone);
       history.replaceState(null, '', `#${inviteHash(invite)}`);
     } catch (error) {
-      this.error.set(joinErrorMessage(error));
+      this.error.set(joinError(error));
     }
   }
 }
 
-function rendezvousLabel(rendezvous: Rendezvous): string {
-  switch (rendezvous) {
-    case 'nostr':
-      return $localize`:@@rendezvous.nostr:Nostr relays`;
-    case 'torrent':
-      return $localize`:@@rendezvous.torrent:BitTorrent trackers`;
-    case 'mqtt':
-      return $localize`:@@rendezvous.mqtt:MQTT brokers`;
-  }
-}
-
-function joinErrorMessage(error: unknown): string {
+function joinError(error: unknown): JoinError {
   if (error instanceof DOMException && error.name === 'NotAllowedError') {
-    return $localize`:@@join.micDenied:Microphone access was denied.`;
+    return { key: 'join.micDenied' };
   }
   if (error instanceof DOMException && error.name === 'NotFoundError') {
-    return $localize`:@@join.micMissing:No microphone found.`;
+    return { key: 'join.micMissing' };
   }
   const detail = error instanceof Error ? error.message : String(error);
-  return $localize`:@@join.failed:Could not join: ${detail}:detail:`;
+  return { key: 'join.failed', params: { detail } };
 }

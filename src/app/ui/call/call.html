@@ -9,12 +9,12 @@
   }
   <button class="new-group" (click)="room.createGroup()">
     <mat-icon>add</mat-icon>
-    <span i18n="@@call.newGroup">New group</span>
+    <span>{{ 'call.newGroup' | translate }}</span>
   </button>
 </div>
 
 @if (room.peers().size === 0) {
-  <p class="alone" i18n="@@call.alone">Nobody else is here yet. Share the invite link.</p>
+  <p class="alone">{{ 'call.alone' | translate }}</p>
 }
 
 <div class="dock">
@@ -33,10 +33,8 @@
     matIconButton
     class="leave"
     (click)="room.leave()"
-    matTooltip="Leave"
-    i18n-matTooltip="@@self.leave"
-    aria-label="Leave"
-    i18n-aria-label="@@self.leave"
+    [matTooltip]="'self.leave' | translate"
+    [attr.aria-label]="'self.leave' | translate"
   >
     <mat-icon>call_end</mat-icon>
   </button>

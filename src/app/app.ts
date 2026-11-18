@@ -12,7 +12,9 @@ import { MatIconModule, MatIconRegistry } from '@angular/material/icon';
 import { MatSidenavModule } from '@angular/material/sidenav';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { TranslatePipe } from '@ngx-translate/core';
 import { MuteHotkey } from './core/hotkey/mute-hotkey';
+import { I18n } from './core/i18n/language';
 import { inviteHash } from './core/invite';
 import { RoomService } from './core/net/room';
 import { Theme } from './core/theme';
@@ -31,6 +33,7 @@ const SPLASH_FADE_MS = 400;
     MatIconModule,
     MatSidenavModule,
     MatTooltipModule,
+    TranslatePipe,
     Call,
     Lobby,
     Logo,
@@ -44,6 +47,7 @@ export class App {
   protected readonly room = inject(RoomService);
   private readonly clipboard = inject(Clipboard);
   private readonly snackBar = inject(MatSnackBar);
+  private readonly i18n = inject(I18n);
 
   protected readonly inviteLink = computed(() => {
     const invite = this.room.invite();
@@ -71,6 +75,6 @@ export class App {
 
   protected copyInvite(): void {
     this.clipboard.copy(this.inviteLink());
-    this.snackBar.open($localize`:@@call.copied:Invite link copied`, undefined, { duration: 2000 });
+    this.snackBar.open(this.i18n.text('call.copied'), undefined, { duration: 2000 });
   }
 }

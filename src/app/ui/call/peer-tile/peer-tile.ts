@@ -3,9 +3,9 @@ import { FormsModule } from '@angular/forms';
 import { MatIconModule } from '@angular/material/icon';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatSliderModule } from '@angular/material/slider';
-import { currentLanguage } from '../../../core/i18n/language';
+import { I18n } from '../../../core/i18n/language';
 import { Peer, RoomService } from '../../../core/net/room';
-import { PeerStats } from '../../../core/net/peer-stats';
+import { PeerStats, Route } from '../../../core/net/peer-stats';
 import { MemberRow } from '../member-row/member-row';
 
 @Component({
@@ -20,6 +20,7 @@ export class PeerTile {
   readonly away = input(false);
 
   private readonly room = inject(RoomService);
+  private readonly i18n = inject(I18n);
   protected readonly speaking = signal(false);
 
   protected readonly analyser = computed(() => {
@@ -28,28 +29,32 @@ export class PeerTile {
   });
 
   protected readonly name = computed(
-    () => this.peer().name ?? $localize`:@@peer.connecting:Connecting…`,
+    () => this.peer().name ?? this.i18n.text('peer.connecting'),
   );
 
-  protected readonly details = computed(() => describeStats(this.peer().stats));
+  protected readonly details = computed(() => describeStats(this.i18n, this.peer().stats));
 
   protected setVolume(volume: number): void {
     this.room.setVolume(this.peer().id, volume);
   }
 }
 
-function describeStats(stats: PeerStats | null): string[] {
+const ROUTE_KEYS: Record<Route, string> = {
+  relay: 'stats.relay',
+  direct: 'stats.direct',
+  'direct-ipv6': 'stats.directIpv6',
+};
+
+function describeStats(i18n: I18n, stats: PeerStats | null): string[] {
   if (!stats) return [];
   const parts: string[] = [];
   if (stats.inKbps !== null) parts.push(`↓ ${stats.inKbps} kbit/s`);
   if (stats.outKbps !== null) parts.push(`↑ ${stats.outKbps} kbit/s`);
   if (stats.rttMs !== null) parts.push(`${stats.rttMs} ms`);
   if (stats.lossPercent !== null) {
-    const loss = stats.lossPercent.toLocaleString(currentLanguage(), { maximumFractionDigits: 1 });
-    parts.push($localize`:@@stats.loss:${loss}:loss: % loss`);
+    const loss = stats.lossPercent.toLocaleString(i18n.language(), { maximumFractionDigits: 1 });
+    parts.push(i18n.text('stats.loss', { loss }));
   }
-  if (stats.route === 'relay') parts.push($localize`:@@stats.relay:via relay`);
-  if (stats.route === 'direct') parts.push($localize`:@@stats.direct:direct`);
-  if (stats.route === 'direct-ipv6') parts.push($localize`:@@stats.directIpv6:direct (IPv6)`);
+  if (stats.route) parts.push(i18n.text(ROUTE_KEYS[stats.route]));
   return parts;
 }

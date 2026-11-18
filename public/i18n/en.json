@@ -1,0 +1,108 @@
+{
+  "toolbar": {
+    "language": "Language",
+    "theme": "Theme",
+    "copyInvite": "Copy link",
+    "settings": "Settings"
+  },
+  "theme": {
+    "system": "System",
+    "light": "Light",
+    "dark": "Dark"
+  },
+  "key": {
+    "ctrl": "Ctrl",
+    "alt": "Alt",
+    "altGr": "AltGr",
+    "shift": "Shift",
+    "meta": "Win",
+    "space": "Space",
+    "left": "left",
+    "right": "right",
+    "numpad": "Num"
+  },
+  "channel": {
+    "lobby": "Lobby",
+    "group": "Group {{number}}",
+    "join": "Join",
+    "delete": "Delete group"
+  },
+  "peer": {
+    "anonymous": "Anonymous",
+    "connecting": "Connecting…"
+  },
+  "stats": {
+    "loss": "{{loss}} % loss",
+    "relay": "via relay",
+    "direct": "direct",
+    "directIpv6": "direct (IPv6)"
+  },
+  "call": {
+    "copied": "Invite link copied",
+    "alone": "Nobody else is here yet. Share the invite link.",
+    "newGroup": "New group",
+    "deleteTitle": "Delete {{name}}?",
+    "deleteMessage": "Everyone in it moves back to the lobby.",
+    "deleteConfirm": "Delete"
+  },
+  "dock": {
+    "mute": "Mute ({{key}})",
+    "unmute": "Unmute ({{key}})"
+  },
+  "self": {
+    "youShort": "you",
+    "gate": "Voice threshold",
+    "gateTooltip": "Nothing below this level is sent",
+    "gateOff": "Off",
+    "gateOffShort": "off",
+    "muteKey": "Mute key",
+    "pressKey": "Press a key… (Esc cancels)",
+    "leave": "Leave"
+  },
+  "settings": {
+    "title": "Settings",
+    "close": "Close",
+    "qualityHint": "Applies to new connections"
+  },
+  "dialog": {
+    "cancel": "Cancel"
+  },
+  "devices": {
+    "microphone": "Input",
+    "defaultMicrophone": "Default microphone",
+    "output": "Output",
+    "defaultOutput": "Default output",
+    "headphoneMode": "Headphone mode",
+    "headphoneHint": "Turns off echo cancellation, noise suppression and automatic gain for the cleanest sound. Turn it off when you use speakers, otherwise the others hear themselves.",
+    "reopenFailed": "Could not open the microphone."
+  },
+  "lobby": {
+    "invitedTitle": "You've been invited",
+    "title": "Join a room",
+    "subtitle": "Browser to browser, Opus up to 510 kbit/s stereo, no accounts.",
+    "name": "Your name",
+    "quality": "Quality you send",
+    "roomSettings": "Room settings",
+    "room": "Room",
+    "password": "Password",
+    "rendezvous": "Rendezvous",
+    "rendezvousHint": "Only used to find each other – audio always flows directly. Everyone in a room needs the same one; it is part of the invite link.",
+    "join": "Join room"
+  },
+  "quality": {
+    "max": "{{kbps}} kbit/s – maximum",
+    "veryHigh": "{{kbps}} kbit/s – very high",
+    "high": "{{kbps}} kbit/s – high, transparent",
+    "standard": "{{kbps}} kbit/s – typical voice chat"
+  },
+  "rendezvous": {
+    "nostr": "Nostr relays",
+    "torrent": "BitTorrent trackers",
+    "mqtt": "MQTT brokers"
+  },
+  "join": {
+    "micDenied": "Microphone access was denied.",
+    "micMissing": "No microphone found.",
+    "failed": "Could not join: {{detail}}"
+  }
+}

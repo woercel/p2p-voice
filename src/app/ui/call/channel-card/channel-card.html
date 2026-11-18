@@ -1,7 +1,7 @@
 <div class="head">
   <span class="name">{{ channel().name }}</span>
   @if (!channel().here) {
-    <span class="join-hint">{{ joinLabel }}</span>
+    <span class="join-hint">{{ joinLabel() }}</span>
   }
   @if (channel().deletable) {
     <button
@@ -9,10 +9,8 @@
       class="delete"
       (click)="removeChannel($event)"
       (keydown.enter)="$event.stopPropagation()"
-      matTooltip="Delete group"
-      i18n-matTooltip="@@channel.delete"
-      aria-label="Delete group"
-      i18n-aria-label="@@channel.delete"
+      [matTooltip]="'channel.delete' | translate"
+      [attr.aria-label]="'channel.delete' | translate"
     >
       <mat-icon>delete</mat-icon>
     </button>

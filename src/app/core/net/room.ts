@@ -12,6 +12,7 @@ import {
   snapshot,
 } from '../channels/channel-state';
 import { ChannelPresence, channelCue } from '../channels/channel-cues';
+import { I18n } from '../i18n/language';
 import { Invite, Rendezvous, randomId } from '../invite';
 import { Settings } from '../settings';
 import { installRemoteSdpPatches } from './remote-sdp';
@@ -61,6 +62,7 @@ type PeerRuntime = {
 export class RoomService {
   private readonly settings = inject(Settings);
   private readonly audio = inject(AudioEngine);
+  private readonly i18n = inject(I18n);
 
   private room: Room | null = null;
   private infoAction: MessageAction<PeerInfo> | null = null;
@@ -83,7 +85,7 @@ export class RoomService {
   private readonly ownInfo = computed<PeerInfo>(() => {
     const channel = this.channelState().channels.find((c) => c.id === this.channel());
     return {
-      name: this.settings.name().trim() || $localize`:@@peer.anonymous:Anonymous`,
+      name: this.settings.name().trim() || this.i18n.text('peer.anonymous'),
       muted: this.audio.muted(),
       channel: this.channel(),
       channelNumber: channel?.number ?? null,
