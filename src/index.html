@@ -1,0 +1,153 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>P2P Voice</title>
+    <base href="/" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta
+      name="description"
+      content="Peer-to-peer voice chat in the browser with Opus up to 510 kbit/s."
+    />
+    <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap"
+    />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0&display=block"
+    />
+    <script>
+      try {
+        const theme = JSON.parse(localStorage.getItem('p2pv.theme'));
+        if (theme === 'light' || theme === 'dark')
+          document.documentElement.style.colorScheme = theme;
+      } catch {}
+    </script>
+    <style>
+      #splash {
+        --splash-bg: light-dark(#f4fbf4, #0f1511);
+        --splash-tile: light-dark(#006d3b, #7ddba0);
+        --splash-bar: light-dark(#ffffff, #00391c);
+        position: fixed;
+        inset: 0;
+        z-index: 1000;
+        display: grid;
+        place-content: center;
+        justify-items: center;
+        gap: 20px;
+        background: var(--splash-bg);
+        color: var(--splash-tile);
+        font:
+          500 22px/1 Roboto,
+          system-ui,
+          sans-serif;
+        letter-spacing: 0.02em;
+        transition:
+          opacity 400ms ease,
+          visibility 400ms;
+      }
+      html {
+        color-scheme: light dark;
+      }
+      #splash.done {
+        opacity: 0;
+        visibility: hidden;
+      }
+      #splash svg {
+        width: 96px;
+        height: 96px;
+        overflow: visible;
+      }
+      #splash .ring {
+        fill: none;
+        stroke: var(--splash-tile);
+        stroke-width: 2;
+        transform-origin: center;
+        animation: splash-ring 1.6s ease-out infinite;
+      }
+      #splash .tile {
+        fill: var(--splash-tile);
+      }
+      #splash .bar {
+        fill: var(--splash-bar);
+        transform-box: fill-box;
+        transform-origin: center;
+        animation: splash-talk 900ms ease-in-out infinite alternate;
+      }
+      @keyframes splash-talk {
+        from {
+          transform: scaleY(0.2);
+        }
+        to {
+          transform: scaleY(1);
+        }
+      }
+      @keyframes splash-ring {
+        from {
+          transform: scale(0.9);
+          opacity: 0.6;
+        }
+        to {
+          transform: scale(1.45);
+          opacity: 0;
+        }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        #splash .bar,
+        #splash .ring {
+          animation: none;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div id="splash" aria-hidden="true">
+      <svg viewBox="0 0 48 48">
+        <rect class="ring" width="48" height="48" rx="14" />
+        <rect class="tile" width="48" height="48" rx="14" />
+        <rect class="bar" x="9" y="19" width="4" height="10" rx="2" style="animation-delay: 0ms" />
+        <rect
+          class="bar"
+          x="15.5"
+          y="14"
+          width="4"
+          height="20"
+          rx="2"
+          style="animation-delay: 120ms"
+        />
+        <rect
+          class="bar"
+          x="22"
+          y="10"
+          width="4"
+          height="28"
+          rx="2"
+          style="animation-delay: 240ms"
+        />
+        <rect
+          class="bar"
+          x="28.5"
+          y="14"
+          width="4"
+          height="20"
+          rx="2"
+          style="animation-delay: 360ms"
+        />
+        <rect
+          class="bar"
+          x="35"
+          y="19"
+          width="4"
+          height="10"
+          rx="2"
+          style="animation-delay: 480ms"
+        />
+      </svg>
+      <span>P2P Voice</span>
+    </div>
+    <app-root></app-root>
+  </body>
+</html>

@@ -1,0 +1,63 @@
+:host {
+  display: block;
+}
+
+:host(.here) mat-card {
+  border-color: var(--mat-sys-primary);
+}
+
+.head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px 10px 16px;
+  border-bottom: 1px solid var(--mat-sys-outline-variant);
+}
+
+.name {
+  flex: 1;
+  min-width: 0;
+  font: var(--mat-sys-title-medium);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.count {
+  font: var(--mat-sys-body-small);
+  color: var(--mat-sys-on-surface-variant);
+  white-space: nowrap;
+}
+
+.here {
+  padding: 4px 12px;
+  border-radius: var(--mat-sys-corner-full);
+  font: var(--mat-sys-label-large);
+  background: var(--mat-sys-primary-container);
+  color: var(--mat-sys-on-primary-container);
+  white-space: nowrap;
+}
+
+.members {
+  display: grid;
+  gap: 10px;
+  padding: 12px;
+}
+
+.self {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font: var(--mat-sys-body-medium);
+  color: var(--mat-sys-on-surface-variant);
+  transition: color 150ms;
+
+  &.speaking {
+    color: var(--mat-sys-primary);
+  }
+}
+
+.empty {
+  font: var(--mat-sys-body-small);
+  color: var(--mat-sys-on-surface-variant);
+}

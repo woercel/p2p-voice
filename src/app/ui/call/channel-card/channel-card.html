@@ -1,0 +1,44 @@
+<mat-card appearance="outlined">
+  <div class="head">
+    <mat-icon>{{ channel().deletable ? 'forum' : 'home' }}</mat-icon>
+    <span class="name">{{ channel().name }}</span>
+    <span class="count" i18n="@@channel.count">{channel().count, plural,
+      =1 {1 person}
+      other {{{ channel().count }} people}
+    }</span>
+    @if (channel().here) {
+      <span class="here" i18n="@@channel.here">You're here</span>
+    } @else {
+      <button matButton="tonal" (click)="enter.emit()" i18n="@@channel.join">Join</button>
+    }
+    @if (channel().deletable) {
+      <button
+        matIconButton
+        (click)="remove.emit()"
+        matTooltip="Delete group"
+        i18n-matTooltip="@@channel.delete"
+        aria-label="Delete group"
+        i18n-aria-label="@@channel.delete"
+      >
+        <mat-icon>delete</mat-icon>
+      </button>
+    }
+  </div>
+
+  <div class="members">
+    @if (channel().here) {
+      <div class="self" [class.speaking]="audio.speaking()">
+        <mat-icon>{{ audio.muted() ? 'mic_off' : 'person' }}</mat-icon>
+        <span>{{ selfName() }}</span>
+        <span class="you" i18n="@@self.you">(you)</span>
+      </div>
+    }
+    @for (peer of channel().members; track peer.id) {
+      <app-peer-tile [peer]="peer" [away]="!channel().here" />
+    } @empty {
+      @if (!channel().here) {
+        <span class="empty" i18n="@@channel.empty">Empty</span>
+      }
+    }
+  </div>
+</mat-card>

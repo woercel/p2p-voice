@@ -1,0 +1,51 @@
+<mat-card appearance="outlined" class="invite">
+  <mat-card-content>
+    <mat-form-field>
+      <mat-label i18n="@@call.inviteLink">Invite link</mat-label>
+      <input #link matInput readonly [value]="inviteLink()" (focus)="link.select()" />
+      <button
+        matIconButton
+        matSuffix
+        (click)="copyInvite()"
+        matTooltip="Copy"
+        i18n-matTooltip="@@call.copy"
+        aria-label="Copy"
+        i18n-aria-label="@@call.copy"
+      >
+        <mat-icon>content_copy</mat-icon>
+      </button>
+    </mat-form-field>
+  </mat-card-content>
+</mat-card>
+
+<app-self-panel />
+
+<mat-expansion-panel class="devices">
+  <mat-expansion-panel-header>
+    <mat-panel-title>
+      <mat-icon>settings_voice</mat-icon>
+      <span i18n="@@call.devices">Audio devices</span>
+    </mat-panel-title>
+  </mat-expansion-panel-header>
+  <app-device-settings />
+</mat-expansion-panel>
+
+@if (room.peers().size === 0) {
+  <p class="alone" i18n="@@call.alone">Nobody else is here yet. Share the invite link.</p>
+}
+
+<div class="channels">
+  @for (channel of channels(); track channel.id) {
+    <app-channel-card
+      [channel]="channel"
+      [selfName]="selfName()"
+      (enter)="room.enterChannel(channel.id)"
+      (remove)="deleteGroup(channel)"
+    />
+  }
+</div>
+
+<button matButton="outlined" class="new-group" (click)="room.createGroup()">
+  <mat-icon>add</mat-icon>
+  <span i18n="@@call.newGroup">New group</span>
+</button>

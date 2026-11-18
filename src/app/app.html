@@ -1,0 +1,52 @@
+<mat-toolbar>
+  <app-logo [animated]="room.status() === 'joining'" />
+  <span class="title">P2P Voice</span>
+  <span class="spacer"></span>
+
+  <button
+    matIconButton
+    [matMenuTriggerFor]="languageMenu"
+    [disabled]="room.status() !== 'idle'"
+    matTooltip="Language"
+    i18n-matTooltip="@@toolbar.language"
+    aria-label="Language"
+    i18n-aria-label="@@toolbar.language"
+  >
+    <mat-icon>translate</mat-icon>
+  </button>
+  <mat-menu #languageMenu="matMenu">
+    @for (option of languages; track option.value) {
+      <button mat-menu-item (click)="switchLanguage(option.value)">
+        <mat-icon>{{ option.value === language ? 'check' : '' }}</mat-icon>
+        <span>{{ option.label }}</span>
+      </button>
+    }
+  </mat-menu>
+
+  <button
+    matIconButton
+    [matMenuTriggerFor]="themeMenu"
+    matTooltip="Theme"
+    i18n-matTooltip="@@toolbar.theme"
+    aria-label="Theme"
+    i18n-aria-label="@@toolbar.theme"
+  >
+    <mat-icon>{{ themeIcon() }}</mat-icon>
+  </button>
+  <mat-menu #themeMenu="matMenu">
+    @for (option of themes; track option.value) {
+      <button mat-menu-item (click)="theme.mode.set(option.value)">
+        <mat-icon>{{ option.icon }}</mat-icon>
+        <span>{{ option.label }}</span>
+      </button>
+    }
+  </mat-menu>
+</mat-toolbar>
+
+<main>
+  @if (room.status() === 'joined') {
+    <app-call />
+  } @else {
+    <app-lobby />
+  }
+</main>

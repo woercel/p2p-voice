@@ -1,0 +1,67 @@
+<mat-card appearance="outlined">
+  <mat-card-content>
+    <div class="head">
+      <span class="name">{{ name() }} <span class="you" i18n="@@self.you">(you)</span></span>
+      @if (audio.muted()) {
+        <span class="badge muted" i18n="@@self.muted">Muted</span>
+      } @else {
+        <span class="badge live" i18n="@@self.live">Mic on</span>
+      }
+    </div>
+
+    <div
+      class="meter"
+      [appLevelMeter]="audio.selfAnalyser()"
+      [silenced]="audio.muted()"
+      [belowDb]="gateEnabled() ? settings.gateDb() : null"
+      (speakingChange)="audio.voiceActive.set($event)"
+    >
+      @if (gateEnabled()) {
+        <span class="threshold" [style.left.%]="thresholdPercent()"></span>
+      }
+    </div>
+
+    <div class="controls">
+      <span
+        class="label"
+        matTooltip="Nothing below this level is sent"
+        i18n-matTooltip="@@self.gateTooltip"
+        i18n="@@self.gate"
+        >Voice threshold</span
+      >
+      <mat-slider [min]="gateOffDb" max="-10" step="1" discrete [displayWith]="formatGate">
+        <input matSliderThumb [(ngModel)]="settings.gateDb" />
+      </mat-slider>
+      <span class="value">{{ gateLabel() }}</span>
+
+      <span class="label" i18n="@@self.muteKey">Mute key</span>
+      <kbd>
+        @if (hotkey.capturing()) {
+          <ng-container i18n="@@self.pressKey">Press a key… (Esc cancels)</ng-container>
+        } @else {
+          {{ hotkey.label() }}
+        }
+      </kbd>
+      <button matButton (click)="hotkey.startCapture()" i18n="@@self.changeKey">Change</button>
+    </div>
+  </mat-card-content>
+
+  <mat-card-actions>
+    <button matButton="tonal" (click)="toggleMute()">
+      <mat-icon>{{ audio.muted() ? 'mic' : 'mic_off' }}</mat-icon>
+      @if (audio.muted()) {
+        <span i18n="@@self.unmute">Unmute</span>
+      } @else {
+        <span i18n="@@self.mute">Mute</span>
+      }
+    </button>
+    <span class="total" i18n="@@self.total">{total(), plural,
+      =1 {Only you in the room}
+      other {{{ total() }} in the room}
+    }</span>
+    <button matButton="filled" class="leave" (click)="room.leave()">
+      <mat-icon>call_end</mat-icon>
+      <span i18n="@@self.leave">Leave</span>
+    </button>
+  </mat-card-actions>
+</mat-card>

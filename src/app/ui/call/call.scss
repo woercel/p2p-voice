@@ -1,0 +1,43 @@
+:host {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.invite {
+  mat-card-content {
+    padding-top: 16px;
+  }
+
+  mat-form-field {
+    width: 100%;
+  }
+
+  input {
+    font-family: ui-monospace, Consolas, monospace;
+    font-size: 13px;
+  }
+}
+
+.devices mat-panel-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.alone {
+  margin: 0;
+  text-align: center;
+  color: var(--mat-sys-on-surface-variant);
+}
+
+.channels {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.new-group {
+  width: 100%;
+  border-style: dashed;
+}

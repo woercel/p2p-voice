@@ -1,0 +1,34 @@
+<div class="fields">
+  <mat-form-field>
+    <mat-label i18n="@@devices.microphone">Microphone</mat-label>
+    <mat-select [ngModel]="settings.microphoneId()" (ngModelChange)="changeMicrophone($event)">
+      <mat-option value="" i18n="@@devices.defaultMicrophone">Default microphone</mat-option>
+      @for (device of audio.inputs(); track device.deviceId) {
+        <mat-option [value]="device.deviceId">{{ device.label || device.deviceId }}</mat-option>
+      }
+    </mat-select>
+  </mat-form-field>
+
+  @if (audio.canSelectOutput) {
+    <mat-form-field>
+      <mat-label i18n="@@devices.output">Output</mat-label>
+      <mat-select [(ngModel)]="settings.outputId">
+        <mat-option value="" i18n="@@devices.defaultOutput">Default output</mat-option>
+        @for (device of audio.outputs(); track device.deviceId) {
+          <mat-option [value]="device.deviceId">{{ device.label || device.deviceId }}</mat-option>
+        }
+      </mat-select>
+    </mat-form-field>
+  }
+</div>
+
+<mat-slide-toggle
+  [ngModel]="settings.headphoneMode()"
+  (ngModelChange)="changeHeadphoneMode($event)"
+  i18n="@@devices.headphoneMode"
+  >Headphone mode</mat-slide-toggle
+>
+<p class="hint" i18n="@@devices.headphoneHint">
+  Turns off echo cancellation, noise suppression and automatic gain for the cleanest sound. Turn it
+  off when you use speakers, otherwise the others hear themselves.
+</p>
