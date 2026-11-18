@@ -6,6 +6,7 @@ import {
   afterNextRender,
   computed,
   effect,
+  signal,
   inject,
   untracked,
 } from '@angular/core';
@@ -52,6 +53,14 @@ export class App {
   private readonly snackBar = inject(MatSnackBar);
   private readonly i18n = inject(I18n);
 
+  protected readonly scrolled = signal(false);
+
+  /** Everyone in the room, us included. */
+  protected readonly peopleCount = computed(() => this.room.roster().length + 1);
+  protected readonly healthLabel = computed(() =>
+    this.i18n.text(`toolbar.health.${this.room.health()}`),
+  );
+
   protected readonly inviteLink = computed(() => {
     const invite = this.room.invite();
     return invite ? `${location.origin}${location.pathname}#${inviteHash(invite)}` : '';
@@ -97,5 +106,9 @@ export class App {
   protected copyInvite(): void {
     this.clipboard.copy(this.inviteLink());
     this.snackBar.open(this.i18n.text('call.copied'), undefined, { duration: 2000 });
+  }
+
+  protected onScroll(event: Event): void {
+    this.scrolled.set((event.target as HTMLElement).scrollTop > 0);
   }
 }

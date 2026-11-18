@@ -3,29 +3,43 @@
     <app-settings-panel (close)="settings.close()" />
   </mat-sidenav>
 
-  <mat-sidenav-content>
-    <header>
-      @if (room.status() === 'joined') {
-        <app-logo />
-        <span class="title">P2P Voice</span>
-      }
-      <span class="spacer"></span>
+  <mat-sidenav-content (scroll)="onScroll($event)">
+    <header [class.scrolled]="scrolled()">
+      <div class="bar">
+        @if (room.status() === 'joined') {
+          <app-logo [animated]="room.anyoneSpeaking()" />
+          <div class="room">
+            <span class="name">{{ room.invite()?.room }}</span>
+            <span class="meta" [matTooltip]="healthLabel()">
+              <span
+                class="dot"
+                [class]="room.health()"
+                role="img"
+                [attr.aria-label]="healthLabel()"
+              ></span>
+              {{ 'toolbar.people' | translate: { count: peopleCount() } }}
+            </span>
+          </div>
+        }
+        <span class="spacer"></span>
 
-      @if (room.status() === 'joined') {
-        <button matButton="tonal" class="invite" (click)="copyInvite()">
-          <mat-icon>link</mat-icon>
-          <span>{{ 'toolbar.copyInvite' | translate }}</span>
+        @if (room.status() === 'joined') {
+          <button matButton="tonal" class="invite" (click)="copyInvite()">
+            <mat-icon>link</mat-icon>
+            <span>{{ 'toolbar.copyInvite' | translate }}</span>
+          </button>
+        }
+
+        <button
+          matIconButton
+          class="settings"
+          (click)="settings.toggle()"
+          [matTooltip]="'toolbar.settings' | translate"
+          [attr.aria-label]="'toolbar.settings' | translate"
+        >
+          <mat-icon>tune</mat-icon>
         </button>
-      }
-
-      <button
-        matIconButton
-        (click)="settings.toggle()"
-        [matTooltip]="'toolbar.settings' | translate"
-        [attr.aria-label]="'toolbar.settings' | translate"
-      >
-        <mat-icon>tune</mat-icon>
-      </button>
+      </div>
     </header>
 
     <main>

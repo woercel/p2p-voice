@@ -3,7 +3,13 @@
     "language": "Language",
     "theme": "Theme",
     "copyInvite": "Copy link",
-    "settings": "Settings"
+    "settings": "Settings",
+    "people": "{{count}} in the room",
+    "health": {
+      "connected": "Connected to everyone",
+      "connecting": "Connecting…",
+      "offline": "Offline"
+    }
   },
   "theme": {
     "system": "System",

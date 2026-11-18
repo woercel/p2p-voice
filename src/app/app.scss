@@ -3,7 +3,7 @@
 }
 
 mat-sidenav-container {
-  min-height: 100dvh;
+  height: 100dvh;
   background: transparent;
 }
 
@@ -13,30 +13,98 @@ mat-sidenav {
   background: var(--mat-sys-surface-container-low);
 }
 
+// Invisible at the top; once the page scrolls under it, it turns to frosted glass with an edge.
 header {
   position: sticky;
   top: 0;
   z-index: 2;
+  border-bottom: 1px solid transparent;
+  background: var(--mat-sys-surface);
+  transition:
+    background-color 200ms,
+    border-color 200ms;
+
+  &.scrolled {
+    border-bottom-color: var(--mat-sys-outline-variant);
+    background: color-mix(in srgb, var(--mat-sys-surface) 72%, transparent);
+    backdrop-filter: blur(14px) saturate(1.4);
+  }
+}
+
+// Same width as the call below it, so logo and buttons line up with the channels.
+.bar {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 12px;
+  max-width: 760px;
   height: 64px;
-  padding: 0 12px 0 20px;
-  background: var(--mat-sys-surface);
+  margin: 0 auto;
+  padding: 0 20px;
 }
 
 app-logo {
-  width: 28px;
-  height: 28px;
+  flex: none;
+  width: 32px;
+  height: 32px;
 }
 
-.title {
-  margin-left: 6px;
+.room {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  line-height: 1.2;
+}
+
+.name {
+  overflow: hidden;
   font: var(--mat-sys-title-medium);
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.meta {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font: var(--mat-sys-label-medium);
+  color: var(--mat-sys-on-surface-variant);
+  white-space: nowrap;
+}
+
+.dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--mat-sys-primary);
+
+  &.connecting {
+    background: var(--mat-sys-tertiary);
+    animation: pulse 1.2s ease-in-out infinite;
+  }
+
+  &.offline {
+    background: var(--mat-sys-error);
+  }
+}
+
+@keyframes pulse {
+  50% {
+    opacity: 0.3;
+  }
 }
 
 .spacer {
   flex: 1;
+}
+
+.settings {
+  margin-right: -8px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dot.connecting {
+    animation: none;
+  }
 }
 
 main {

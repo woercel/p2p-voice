@@ -1,4 +1,13 @@
-import { ChangeDetectionStrategy, Component, computed, inject, input, signal } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  DestroyRef,
+  computed,
+  effect,
+  inject,
+  input,
+  untracked,
+} from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MatIconModule } from '@angular/material/icon';
 import { MatMenuModule } from '@angular/material/menu';
@@ -22,7 +31,20 @@ export class PeerTile {
 
   private readonly room = inject(RoomService);
   private readonly i18n = inject(I18n);
-  protected readonly speaking = signal(false);
+  protected readonly speaking = computed(() => this.room.speakingPeers().has(this.peer().id));
+
+  constructor() {
+    // Only the meter of a peer we hear reports speaking; a tile that stops hearing it says so.
+    effect(() => {
+      const id = this.peer().id;
+      if (this.away() || this.peer().connecting) untracked(() => this.room.setSpeaking(id, false));
+    });
+    inject(DestroyRef).onDestroy(() => this.room.setSpeaking(this.peer().id, false));
+  }
+
+  protected reportSpeaking(speaking: boolean): void {
+    this.room.setSpeaking(this.peer().id, speaking);
+  }
 
   protected readonly analyser = computed(() => {
     const peer = this.peer();

@@ -14,7 +14,7 @@
       [muted]="peer().muted"
       [speaking]="speaking()"
       [analyser]="analyser()"
-      (levelSpeaking)="speaking.set($event)"
+      (levelSpeaking)="reportSpeaking($event)"
     />
   </button>
 

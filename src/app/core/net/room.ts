@@ -126,6 +126,23 @@ export class RoomService {
       connecting: true,
     })),
   ]);
+  /** Peers whose audio we currently hear above the speaking level, as reported by their tiles. */
+  readonly speakingPeers = signal<ReadonlySet<string>>(new Set());
+  /** Someone in our channel, us included, is talking right now. */
+  readonly anyoneSpeaking = computed(() => {
+    if (this.audio.speaking()) return true;
+    const own = this.channel();
+    const speaking = this.speakingPeers();
+    return this.peerList().some(
+      (peer) => speaking.has(peer.id) && resolveChannel(this.channelState(), peer.channel) === own,
+    );
+  });
+  /** How the connection to the room is doing, for the status dot in the header. */
+  readonly health = computed<'offline' | 'connecting' | 'connected'>(() => {
+    if (this.offline()) return 'offline';
+    if (this.searching() || this.roster().some((peer) => peer.connecting)) return 'connecting';
+    return 'connected';
+  });
   private readonly ownInfo = computed<PeerInfo>(() => {
     const channel = this.channelState().channels.find((c) => c.id === this.channel());
     return {
@@ -230,6 +247,7 @@ export class RoomService {
     this.departing.clear();
     this.volumeByName.clear();
     this.expected.set(new Map());
+    this.speakingPeers.set(new Set());
     this.searching.set(false);
     this.runtime.forEach((r) => r.playback?.dispose());
     this.runtime.clear();
@@ -239,6 +257,16 @@ export class RoomService {
     this.selectedChannel.set(LOBBY);
     this.invite.set(null);
     this.status.set('idle');
+  }
+
+  setSpeaking(peerId: string, speaking: boolean): void {
+    if (this.speakingPeers().has(peerId) === speaking) return;
+    this.speakingPeers.update((current) => {
+      const next = new Set(current);
+      if (speaking) next.add(peerId);
+      else next.delete(peerId);
+      return next;
+    });
   }
 
   enterChannel(id: string): void {
@@ -380,6 +408,7 @@ export class RoomService {
     if (cue && this.peers().has(peerId)) this.audio.playCue('leave');
     this.runtime.get(peerId)?.playback?.dispose();
     this.runtime.delete(peerId);
+    this.setSpeaking(peerId, false);
     this.peers.update((peers) => {
       const next = new Map(peers);
       next.delete(peerId);
