@@ -37,28 +37,3 @@ export function tuneOpus(sdp: string, bitrate: number): string {
     ? sdp.replace(fmtp, render({ ...parseParams(existing[1]), ...wanted }))
     : sdp.replace(rtpmap[0], `${rtpmap[0]}\r\n${render(wanted)}`);
 }
-
-let installed = false;
-
-/**
- * fmtp parameters describe what the author of an SDP wants to receive, so rewriting the
- * remote description makes our own Opus encoder send stereo at the requested bitrate.
- */
-export function installOpusTuning(bitrate: () => number): void {
-  if (installed || typeof RTCPeerConnection === 'undefined') return;
-  installed = true;
-
-  const original = RTCPeerConnection.prototype.setRemoteDescription as (
-    this: RTCPeerConnection,
-    description: RTCSessionDescriptionInit,
-  ) => Promise<void>;
-  RTCPeerConnection.prototype.setRemoteDescription = function (
-    this: RTCPeerConnection,
-    description: RTCSessionDescriptionInit,
-  ) {
-    const tuned = description?.sdp
-      ? { type: description.type, sdp: tuneOpus(description.sdp, bitrate()) }
-      : description;
-    return original.call(this, tuned);
-  };
-}

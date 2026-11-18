@@ -14,7 +14,7 @@ import {
 import { ChannelPresence, channelCue } from '../channels/channel-cues';
 import { Invite, Rendezvous, randomId } from '../invite';
 import { Settings } from '../settings';
-import { installOpusTuning } from './opus-sdp';
+import { installRemoteSdpPatches } from './remote-sdp';
 import { PeerStats, StatsSample, readPeerStats } from './peer-stats';
 
 const APP_ID = 'hifi-p2p-voice/v1';
@@ -92,7 +92,7 @@ export class RoomService {
   });
 
   constructor() {
-    installOpusTuning(() => this.settings.bitrate());
+    installRemoteSdpPatches(() => this.settings.bitrate());
 
     effect(() => {
       const info = this.ownInfo();
