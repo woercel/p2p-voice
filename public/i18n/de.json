@@ -44,6 +44,7 @@
     "soundOn": "Ton an",
     "alone": "Noch niemand da. Schick den Einladungslink rum.",
     "searching": "Suche nach anderen im Raum…",
+    "offline": "Verbindung verloren. Verbinde neu, sobald du wieder online bist…",
     "newGroup": "Neue Gruppe",
     "deleteTitle": "{{name}} löschen?",
     "deleteMessage": "Alle darin landen wieder in der Lobby.",

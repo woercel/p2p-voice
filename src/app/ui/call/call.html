@@ -1,3 +1,10 @@
+@if (room.offline()) {
+  <p class="offline" role="status">
+    <mat-icon>wifi_off</mat-icon>
+    {{ 'call.offline' | translate }}
+  </p>
+}
+
 <div class="channels">
   @for (channel of channels(); track channel.id) {
     <app-channel-card
@@ -13,7 +20,7 @@
   </button>
 </div>
 
-@if (room.roster().length === 0) {
+@if (room.roster().length === 0 && !room.offline()) {
   <p class="alone">
     @if (room.searching()) {
       <mat-progress-spinner mode="indeterminate" diameter="16" strokeWidth="2" />

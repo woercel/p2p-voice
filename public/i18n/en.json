@@ -44,6 +44,7 @@
     "soundOn": "Turn on sound",
     "alone": "Nobody else is here yet. Share the invite link.",
     "searching": "Looking for others in the room…",
+    "offline": "Connection lost. Reconnecting as soon as you are back online…",
     "newGroup": "New group",
     "deleteTitle": "Delete {{name}}?",
     "deleteMessage": "Everyone in it moves back to the lobby.",

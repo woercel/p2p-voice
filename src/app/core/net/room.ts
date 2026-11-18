@@ -18,7 +18,7 @@ import { forgetRoom, rememberRoom } from '../last-room';
 import { Settings } from '../settings';
 import { installRemoteSdpPatches } from './remote-sdp';
 import { PeerStats, StatsSample, readPeerStats } from './peer-stats';
-import { ExpectedPeer, RosterEntry, dropStale, expectFrom, rosterFor } from './roster';
+import { ExpectedPeer, RosterEntry, dropStale, expectFrom, lostTwin, rosterFor } from './roster';
 
 const APP_ID = 'hifi-p2p-voice/v1';
 const STATS_INTERVAL_MS = 1000;
@@ -28,6 +28,13 @@ const JOIN_CUE_QUIET_MS = 4000;
 const SEARCH_MS = 5000;
 /** A peer named in a roster that has not connected by then is given up on. */
 const EXPECT_MS = 15_000;
+/**
+ * How long a peer whose connection dropped keeps its place. Trystero has already waited about
+ * 5 s of silence by then, so this covers network outages of up to about 20 s.
+ */
+const RECONNECT_MS = 15_000;
+/** Leaving should not hang on a goodbye that cannot be delivered anymore. */
+const GOODBYE_WAIT_MS = 300;
 
 const STRATEGIES: Record<
   Rendezvous,
@@ -64,6 +71,8 @@ type PeerRuntime = {
   playback?: Playback;
   parkedSenders: Set<RTCRtpSender>;
   sample?: StatsSample;
+  /** ICE stopped hearing from them before the connection ended: a drop, not a closed page. */
+  unreachable?: boolean;
 };
 
 @Injectable({ providedIn: 'root' })
@@ -76,6 +85,11 @@ export class RoomService {
   private infoAction: MessageAction<PeerInfo> | null = null;
   private channelAction: MessageAction<ChannelMessage> | null = null;
   private rosterAction: MessageAction<RosterEntry[]> | null = null;
+  private byeAction: MessageAction<string> | null = null;
+  /** Peers that said goodbye; their connection closing is a real leave, not a drop. */
+  private readonly departing = new Set<string>();
+  /** A reloaded page comes back under a new peer id; its volume follows the name. */
+  private readonly volumeByName = new Map<string, number>();
   private readonly runtime = new Map<string, PeerRuntime>();
   private statsTimer: ReturnType<typeof setInterval> | undefined;
   private searchTimer: ReturnType<typeof setTimeout> | undefined;
@@ -92,6 +106,8 @@ export class RoomService {
   readonly expected = signal<ReadonlyMap<string, ExpectedPeer>>(new Map());
   /** Right after joining nobody has answered yet; that does not mean the room is empty. */
   readonly searching = signal(false);
+  /** The browser says the network is gone; peers drop and come back once it returns. */
+  readonly offline = signal(typeof navigator !== 'undefined' && navigator.onLine === false);
   private readonly selectedChannel = signal<string>(LOBBY);
 
   readonly channel = computed(() => resolveChannel(this.channelState(), this.selectedChannel()));
@@ -105,7 +121,7 @@ export class RoomService {
       muted: peer.muted,
       channel: peer.channel,
       hasAudio: false,
-      volume: 100,
+      volume: peer.volume,
       stats: null,
       connecting: true,
     })),
@@ -141,7 +157,13 @@ export class RoomService {
       untracked(() => this.cueChannelMoves(joined, own, state, peers));
     });
 
-    inject(DOCUMENT).defaultView?.addEventListener('pagehide', () => void this.room?.leave());
+    const window = inject(DOCUMENT).defaultView;
+    window?.addEventListener('pagehide', () => {
+      const room = this.room;
+      void this.sayGoodbye().then(() => room?.leave());
+    });
+    window?.addEventListener('online', () => this.offline.set(false));
+    window?.addEventListener('offline', () => this.offline.set(true));
   }
 
   async join(invite: Invite, testTone: boolean): Promise<void> {
@@ -160,11 +182,13 @@ export class RoomService {
       this.rosterAction = room.makeAction<RosterEntry[]>('roster');
       this.rosterAction.onMessage = (roster) =>
         this.expected.update((expected) =>
-          expectFrom(expected, roster, this.peers(), performance.now()),
+          expectFrom(expected, roster, this.peers(), performance.now() + EXPECT_MS),
         );
+      this.byeAction = room.makeAction<string>('bye');
+      this.byeAction.onMessage = (_, { peerId }) => void this.departing.add(peerId);
 
       room.onPeerJoin = (peerId) => this.welcome(peerId, stream);
-      room.onPeerLeave = (peerId) => this.removePeer(peerId);
+      room.onPeerLeave = (peerId) => this.peerLeft(peerId);
       room.onPeerStream = (remote, peerId) => this.attachStream(peerId, remote);
 
       this.statsTimer = setInterval(() => void this.pollStats(), STATS_INTERVAL_MS);
@@ -183,7 +207,15 @@ export class RoomService {
 
   async leave(): Promise<void> {
     forgetRoom();
+    await this.sayGoodbye();
     await this.teardown();
+  }
+
+  /** Tells everyone this is a real leave, so they drop us right away instead of waiting. */
+  private async sayGoodbye(): Promise<void> {
+    const sent = this.byeAction?.send('').catch(() => undefined);
+    if (!sent) return;
+    await Promise.race([sent, new Promise((resolve) => setTimeout(resolve, GOODBYE_WAIT_MS))]);
   }
 
   private async teardown(): Promise<void> {
@@ -194,6 +226,9 @@ export class RoomService {
     this.infoAction = null;
     this.channelAction = null;
     this.rosterAction = null;
+    this.byeAction = null;
+    this.departing.clear();
+    this.volumeByName.clear();
     this.expected.set(new Map());
     this.searching.set(false);
     this.runtime.forEach((r) => r.playback?.dispose());
@@ -221,6 +256,8 @@ export class RoomService {
 
   setVolume(peerId: string, volume: number): void {
     this.patchPeer(peerId, { volume });
+    const name = this.peers().get(peerId)?.name;
+    if (name) this.volumeByName.set(name, volume);
   }
 
   analyserFor(peerId: string): AnalyserNode | null {
@@ -236,19 +273,21 @@ export class RoomService {
     const announced = this.expected().get(peerId);
     const settling = performance.now() - this.joinedAt <= JOIN_CUE_QUIET_MS;
     if (!announced && !settling) this.audio.playCue('join');
-    if (announced) {
-      this.expected.update((expected) => {
-        const next = new Map(expected);
-        next.delete(peerId);
-        return next;
-      });
-    }
-    // Until their own info arrives, show what the roster said instead of "connecting".
+    if (announced) this.forgetExpected(peerId);
+    // Until their own info arrives, show what we knew instead of "connecting".
     this.patchPeer(
       peerId,
-      announced ? { name: announced.name, muted: announced.muted, channel: announced.channel } : {},
+      announced
+        ? {
+            name: announced.name,
+            muted: announced.muted,
+            channel: announced.channel,
+            volume: announced.volume,
+          }
+        : {},
     );
     this.searching.set(false);
+    this.watchReachability(peerId);
     const sends = this.room?.addStream(stream, { target: peerId }) ?? [];
     void Promise.allSettled(sends).then(() => this.route());
     void this.channelAction?.send(snapshot(this.channelState()), { target: peerId });
@@ -266,11 +305,20 @@ export class RoomService {
       };
       this.channelState.update((state) => applyChannelMessage(state, { op: 'create', channel }));
     }
-    this.patchPeer(peerId, {
-      name: String(info.name ?? '').slice(0, 32) || null,
+    const name = String(info.name ?? '').slice(0, 32) || null;
+    const patch: Partial<Peer> = {
+      name,
       muted: Boolean(info.muted),
       channel: typeof info.channel === 'string' ? info.channel : LOBBY,
-    });
+    };
+    const firstInfo = this.peers().get(peerId)?.name === null;
+    if (firstInfo && name) {
+      const twin = lostTwin(this.expected(), name);
+      if (twin) this.forgetExpected(twin.id);
+      const volume = this.volumeByName.get(name);
+      if (volume !== undefined) patch.volume = volume;
+    }
+    this.patchPeer(peerId, patch);
   }
 
   private attachStream(peerId: string, stream: MediaStream): void {
@@ -280,8 +328,56 @@ export class RoomService {
     this.patchPeer(peerId, { hasAudio: true });
   }
 
-  private removePeer(peerId: string): void {
-    if (this.peers().has(peerId)) this.audio.playCue('leave');
+  /**
+   * A closed or reloaded page ends the connection cleanly, right away. A network drop first
+   * goes silent; Trystero keeps announcing until both sides find each other again, and until
+   * then the peer stays, marked as connecting.
+   */
+  private peerLeft(peerId: string): void {
+    const peer = this.peers().get(peerId);
+    const said = this.departing.delete(peerId);
+    const dropped = this.runtime.get(peerId)?.unreachable === true;
+    const name = peer?.name;
+    if (said || !dropped || !peer || !name) {
+      this.removePeer(peerId);
+      return;
+    }
+    this.removePeer(peerId, false);
+    this.expected.update((expected) =>
+      new Map(expected).set(peerId, {
+        id: peerId,
+        name,
+        muted: peer.muted,
+        channel: peer.channel,
+        volume: peer.volume,
+        lost: true,
+        until: performance.now() + RECONNECT_MS,
+      }),
+    );
+  }
+
+  private watchReachability(peerId: string): void {
+    const connection = this.room?.getPeers()[peerId];
+    if (!connection) return;
+    const runtime = this.runtimeFor(peerId);
+    const update = () => {
+      const state = connection.iceConnectionState;
+      if (state === 'disconnected' || state === 'failed') runtime.unreachable = true;
+      else if (state === 'connected' || state === 'completed') runtime.unreachable = false;
+    };
+    connection.addEventListener('iceconnectionstatechange', update);
+  }
+
+  private forgetExpected(peerId: string): void {
+    this.expected.update((expected) => {
+      const next = new Map(expected);
+      next.delete(peerId);
+      return next;
+    });
+  }
+
+  private removePeer(peerId: string, cue = true): void {
+    if (cue && this.peers().has(peerId)) this.audio.playCue('leave');
     this.runtime.get(peerId)?.playback?.dispose();
     this.runtime.delete(peerId);
     this.peers.update((peers) => {
@@ -388,7 +484,12 @@ export class RoomService {
   private async pollStats(): Promise<void> {
     if (!this.room) return;
     const now = performance.now();
-    this.expected.update((expected) => dropStale(expected, now, EXPECT_MS));
+    const { kept, gone } = dropStale(this.expected(), now);
+    if (gone.length) {
+      this.expected.set(kept);
+      // Only now is it clear that a dropped peer is not coming back.
+      if (gone.some((peer) => peer.lost)) this.audio.playCue('leave');
+    }
     const updates = new Map<string, PeerStats>();
     for (const [peerId, connection] of Object.entries(this.room.getPeers())) {
       const runtime = this.runtime.get(peerId);

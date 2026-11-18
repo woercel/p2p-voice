@@ -30,6 +30,9 @@ export function installRemoteSdpPatches(bitrate: () => number): void {
     this: RTCPeerConnection,
     description: RTCSessionDescriptionInit,
   ) {
-    return original.call(this, description?.sdp ? patch(this, description, bitrate()) : description);
+    return original.call(
+      this,
+      description?.sdp ? patch(this, description, bitrate()) : description,
+    );
   };
 }
