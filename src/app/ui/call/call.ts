@@ -2,6 +2,7 @@ import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/c
 import { MatButtonModule } from '@angular/material/button';
 import { MatDialog } from '@angular/material/dialog';
 import { MatIconModule } from '@angular/material/icon';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { AudioEngine } from '../../core/audio/audio-engine';
 import { Channel, LOBBY, resolveChannel } from '../../core/channels/channel-state';
@@ -16,7 +17,14 @@ import { ChannelCard, ChannelView } from './channel-card/channel-card';
 
 @Component({
   selector: 'app-call',
-  imports: [MatButtonModule, MatIconModule, MatTooltipModule, TranslatePipe, ChannelCard],
+  imports: [
+    MatButtonModule,
+    MatIconModule,
+    MatProgressSpinnerModule,
+    MatTooltipModule,
+    TranslatePipe,
+    ChannelCard,
+  ],
   templateUrl: './call.html',
   styleUrl: './call.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -42,7 +50,7 @@ export class Call {
   protected readonly channels = computed<ChannelView[]>(() => {
     const state = this.room.channelState();
     const own = this.room.channel();
-    const peers = this.room.peerList();
+    const peers = this.room.roster();
     const entries: (typeof LOBBY | Channel)[] = [LOBBY, ...state.channels];
     return entries.map((channel) => {
       const id = channel === LOBBY ? LOBBY : channel.id;

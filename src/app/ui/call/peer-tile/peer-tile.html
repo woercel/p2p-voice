@@ -1,4 +1,11 @@
-@if (away()) {
+@if (peer().connecting) {
+  <app-member-row
+    [name]="name()"
+    [muted]="peer().muted"
+    [away]="true"
+    [note]="'peer.connectingShort' | translate"
+  />
+} @else if (away()) {
   <app-member-row [name]="name()" [muted]="peer().muted" [away]="true" />
 } @else {
   <button class="trigger" [matMenuTriggerFor]="menu" (click)="$event.stopPropagation()">

@@ -29,7 +29,8 @@
   },
   "peer": {
     "anonymous": "Anonym",
-    "connecting": "Verbinde…"
+    "connecting": "Verbinde…",
+    "connectingShort": "verbindet…"
   },
   "stats": {
     "loss": "{{loss}} % Verlust",
@@ -42,6 +43,7 @@
     "soundBlocked": "Wieder im Raum. Dein Browser hält den Ton noch zurück.",
     "soundOn": "Ton an",
     "alone": "Noch niemand da. Schick den Einladungslink rum.",
+    "searching": "Suche nach anderen im Raum…",
     "newGroup": "Neue Gruppe",
     "deleteTitle": "{{name}} löschen?",
     "deleteMessage": "Alle darin landen wieder in der Lobby.",

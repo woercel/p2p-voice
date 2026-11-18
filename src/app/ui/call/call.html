@@ -13,8 +13,15 @@
   </button>
 </div>
 
-@if (room.peers().size === 0) {
-  <p class="alone">{{ 'call.alone' | translate }}</p>
+@if (room.roster().length === 0) {
+  <p class="alone">
+    @if (room.searching()) {
+      <mat-progress-spinner mode="indeterminate" diameter="16" strokeWidth="2" />
+      {{ 'call.searching' | translate }}
+    } @else {
+      {{ 'call.alone' | translate }}
+    }
+  </p>
 }
 
 <div class="dock">

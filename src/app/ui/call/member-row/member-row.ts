@@ -13,7 +13,10 @@ import { LevelMeter } from '../../level-meter/level-meter';
     <span class="name">
       {{ name() }}
       @if (self()) {
-        <span class="you">{{ 'self.youShort' | translate }}</span>
+        <span class="note">{{ 'self.youShort' | translate }}</span>
+      }
+      @if (note(); as note) {
+        <span class="note">{{ note }}</span>
       }
     </span>
     @if (!away()) {
@@ -44,6 +47,8 @@ export class MemberRow {
   readonly speaking = input(false);
   readonly away = input(false);
   readonly self = input(false);
+  /** A short remark after the name, such as that the connection is still being set up. */
+  readonly note = input<string | null>(null);
   readonly analyser = input<AnalyserNode | null>(null);
   readonly belowDb = input<number | null>(null);
   readonly levelSpeaking = output<boolean>();

@@ -18,11 +18,16 @@ import { forgetRoom, rememberRoom } from '../last-room';
 import { Settings } from '../settings';
 import { installRemoteSdpPatches } from './remote-sdp';
 import { PeerStats, StatsSample, readPeerStats } from './peer-stats';
+import { ExpectedPeer, RosterEntry, dropStale, expectFrom, rosterFor } from './roster';
 
 const APP_ID = 'hifi-p2p-voice/v1';
 const STATS_INTERVAL_MS = 1000;
 /** Peers already in the room are discovered one by one right after joining; no chime for those. */
 const JOIN_CUE_QUIET_MS = 4000;
+/** How long a fresh join counts as still looking around before it says nobody is here. */
+const SEARCH_MS = 5000;
+/** A peer named in a roster that has not connected by then is given up on. */
+const EXPECT_MS = 15_000;
 
 const STRATEGIES: Record<
   Rendezvous,
@@ -51,6 +56,8 @@ export type Peer = {
   hasAudio: boolean;
   volume: number;
   stats: PeerStats | null;
+  /** Known from another peer's roster, but our own connection is not up yet. */
+  connecting: boolean;
 };
 
 type PeerRuntime = {
@@ -68,8 +75,10 @@ export class RoomService {
   private room: Room | null = null;
   private infoAction: MessageAction<PeerInfo> | null = null;
   private channelAction: MessageAction<ChannelMessage> | null = null;
+  private rosterAction: MessageAction<RosterEntry[]> | null = null;
   private readonly runtime = new Map<string, PeerRuntime>();
   private statsTimer: ReturnType<typeof setInterval> | undefined;
+  private searchTimer: ReturnType<typeof setTimeout> | undefined;
   private routing = false;
   private routeAgain = false;
   private joinedAt = 0;
@@ -79,10 +88,28 @@ export class RoomService {
   readonly invite = signal<Invite | null>(null);
   readonly peers = signal<ReadonlyMap<string, Peer>>(new Map());
   readonly channelState = signal<ChannelState>(EMPTY_CHANNEL_STATE);
+  /** Peers others told us about that we are still connecting to. */
+  readonly expected = signal<ReadonlyMap<string, ExpectedPeer>>(new Map());
+  /** Right after joining nobody has answered yet; that does not mean the room is empty. */
+  readonly searching = signal(false);
   private readonly selectedChannel = signal<string>(LOBBY);
 
   readonly channel = computed(() => resolveChannel(this.channelState(), this.selectedChannel()));
   readonly peerList = computed(() => [...this.peers().values()]);
+  /** Everyone in the room as far as we know, including those still connecting. */
+  readonly roster = computed<Peer[]>(() => [
+    ...this.peerList(),
+    ...[...this.expected().values()].map((peer) => ({
+      id: peer.id,
+      name: peer.name,
+      muted: peer.muted,
+      channel: peer.channel,
+      hasAudio: false,
+      volume: 100,
+      stats: null,
+      connecting: true,
+    })),
+  ]);
   private readonly ownInfo = computed<PeerInfo>(() => {
     const channel = this.channelState().channels.find((c) => c.id === this.channel());
     return {
@@ -130,12 +157,19 @@ export class RoomService {
       this.channelAction = room.makeAction<ChannelMessage>('chan');
       this.channelAction.onMessage = (message) =>
         this.channelState.update((state) => applyChannelMessage(state, message));
+      this.rosterAction = room.makeAction<RosterEntry[]>('roster');
+      this.rosterAction.onMessage = (roster) =>
+        this.expected.update((expected) =>
+          expectFrom(expected, roster, this.peers(), performance.now()),
+        );
 
       room.onPeerJoin = (peerId) => this.welcome(peerId, stream);
       room.onPeerLeave = (peerId) => this.removePeer(peerId);
       room.onPeerStream = (remote, peerId) => this.attachStream(peerId, remote);
 
       this.statsTimer = setInterval(() => void this.pollStats(), STATS_INTERVAL_MS);
+      this.searching.set(true);
+      this.searchTimer = setTimeout(() => this.searching.set(false), SEARCH_MS);
       this.invite.set(invite);
       this.status.set('joined');
       this.joinedAt = performance.now();
@@ -154,10 +188,14 @@ export class RoomService {
 
   private async teardown(): Promise<void> {
     clearInterval(this.statsTimer);
+    clearTimeout(this.searchTimer);
     await this.room?.leave().catch(() => undefined);
     this.room = null;
     this.infoAction = null;
     this.channelAction = null;
+    this.rosterAction = null;
+    this.expected.set(new Map());
+    this.searching.set(false);
     this.runtime.forEach((r) => r.playback?.dispose());
     this.runtime.clear();
     await this.audio.stop();
@@ -195,12 +233,27 @@ export class RoomService {
   }
 
   private welcome(peerId: string, stream: MediaStream): void {
-    if (performance.now() - this.joinedAt > JOIN_CUE_QUIET_MS) this.audio.playCue('join');
-    this.patchPeer(peerId, {});
+    const announced = this.expected().get(peerId);
+    const settling = performance.now() - this.joinedAt <= JOIN_CUE_QUIET_MS;
+    if (!announced && !settling) this.audio.playCue('join');
+    if (announced) {
+      this.expected.update((expected) => {
+        const next = new Map(expected);
+        next.delete(peerId);
+        return next;
+      });
+    }
+    // Until their own info arrives, show what the roster said instead of "connecting".
+    this.patchPeer(
+      peerId,
+      announced ? { name: announced.name, muted: announced.muted, channel: announced.channel } : {},
+    );
+    this.searching.set(false);
     const sends = this.room?.addStream(stream, { target: peerId }) ?? [];
     void Promise.allSettled(sends).then(() => this.route());
     void this.channelAction?.send(snapshot(this.channelState()), { target: peerId });
     void this.infoAction?.send(this.ownInfo(), { target: peerId });
+    void this.rosterAction?.send(rosterFor(this.peers().values(), peerId), { target: peerId });
   }
 
   private receiveInfo(peerId: string, info: PeerInfo): void {
@@ -281,6 +334,7 @@ export class RoomService {
         hasAudio: false,
         volume: 100,
         stats: null,
+        connecting: false,
       };
       return new Map(peers).set(peerId, { ...current, ...patch });
     });
@@ -334,6 +388,7 @@ export class RoomService {
   private async pollStats(): Promise<void> {
     if (!this.room) return;
     const now = performance.now();
+    this.expected.update((expected) => dropStale(expected, now, EXPECT_MS));
     const updates = new Map<string, PeerStats>();
     for (const [peerId, connection] of Object.entries(this.room.getPeers())) {
       const runtime = this.runtime.get(peerId);

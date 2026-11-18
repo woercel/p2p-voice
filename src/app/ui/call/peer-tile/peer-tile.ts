@@ -3,6 +3,7 @@ import { FormsModule } from '@angular/forms';
 import { MatIconModule } from '@angular/material/icon';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatSliderModule } from '@angular/material/slider';
+import { TranslatePipe } from '@ngx-translate/core';
 import { I18n } from '../../../core/i18n/language';
 import { Peer, RoomService } from '../../../core/net/room';
 import { PeerStats, Route } from '../../../core/net/peer-stats';
@@ -10,7 +11,7 @@ import { MemberRow } from '../member-row/member-row';
 
 @Component({
   selector: 'app-peer-tile',
-  imports: [FormsModule, MatIconModule, MatMenuModule, MatSliderModule, MemberRow],
+  imports: [FormsModule, MatIconModule, MatMenuModule, MatSliderModule, TranslatePipe, MemberRow],
   templateUrl: './peer-tile.html',
   styleUrl: './peer-tile.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -28,9 +29,7 @@ export class PeerTile {
     return peer.hasAudio ? this.room.analyserFor(peer.id) : null;
   });
 
-  protected readonly name = computed(
-    () => this.peer().name ?? this.i18n.text('peer.connecting'),
-  );
+  protected readonly name = computed(() => this.peer().name ?? this.i18n.text('peer.connecting'));
 
   protected readonly details = computed(() => describeStats(this.i18n, this.peer().stats));
 

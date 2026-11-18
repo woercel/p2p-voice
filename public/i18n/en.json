@@ -29,7 +29,8 @@
   },
   "peer": {
     "anonymous": "Anonymous",
-    "connecting": "Connecting…"
+    "connecting": "Connecting…",
+    "connectingShort": "connecting…"
   },
   "stats": {
     "loss": "{{loss}} % loss",
@@ -42,6 +43,7 @@
     "soundBlocked": "Back in the room. Your browser is holding the sound back.",
     "soundOn": "Turn on sound",
     "alone": "Nobody else is here yet. Share the invite link.",
+    "searching": "Looking for others in the room…",
     "newGroup": "New group",
     "deleteTitle": "Delete {{name}}?",
     "deleteMessage": "Everyone in it moves back to the lobby.",
