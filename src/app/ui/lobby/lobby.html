@@ -17,7 +17,7 @@
   @if (joining()) {
     <mat-spinner diameter="18" />
   }
-  <span>{{ 'lobby.join' | translate }}</span>
+  <span>{{ (invited ? 'lobby.join' : 'lobby.open') | translate }}</span>
 </button>
 
 @if (error(); as error) {

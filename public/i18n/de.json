@@ -83,7 +83,7 @@
   },
   "lobby": {
     "invitedTitle": "Du wurdest eingeladen",
-    "title": "Raum beitreten",
+    "title": "Neuen Raum öffnen",
     "subtitle": "Von Browser zu Browser, Opus bis 510 kbit/s Stereo, ohne Accounts.",
     "name": "Dein Name",
     "quality": "Deine Sendequalität",
@@ -92,7 +92,8 @@
     "password": "Passwort (optional)",
     "rendezvous": "Verbindungsweg",
     "rendezvousHint": "Darüber findet ihr euch, das Audio läuft trotzdem direkt. Alle brauchen denselben, er steckt im Einladungslink.",
-    "join": "Raum beitreten"
+    "open": "Raum öffnen",
+    "join": "Beitreten"
   },
   "quality": {
     "max": "{{kbps}} kbit/s – Maximum",
