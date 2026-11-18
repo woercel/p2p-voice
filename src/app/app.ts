@@ -15,6 +15,7 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { MuteHotkey } from './core/hotkey/mute-hotkey';
 import { inviteHash } from './core/invite';
 import { RoomService } from './core/net/room';
+import { Theme } from './core/theme';
 import { Call } from './ui/call/call';
 import { Lobby } from './ui/lobby/lobby';
 import { Logo } from './ui/logo/logo';
@@ -52,6 +53,7 @@ export class App {
   constructor() {
     inject(MatIconRegistry).setDefaultFontSetClass('material-symbols-outlined');
     inject(MuteHotkey);
+    inject(Theme);
 
     const document = inject(DOCUMENT);
     afterNextRender(() => {
