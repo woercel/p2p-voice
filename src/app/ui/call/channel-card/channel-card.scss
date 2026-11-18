@@ -1,9 +1,14 @@
 :host {
+  --card-radius: var(--mat-sys-corner-extra-large);
+  --card-padding: 6px;
+  /* Rows inside follow the card's curve at the same distance. */
+  --row-radius: calc(var(--card-radius) - var(--card-padding));
+
   display: flex;
   flex-direction: column;
   gap: 2px;
-  padding: 6px;
-  border-radius: var(--mat-sys-corner-extra-large);
+  padding: var(--card-padding);
+  border-radius: var(--card-radius);
   background: var(--mat-sys-surface-container-low);
   outline: 1px solid transparent;
   transition:

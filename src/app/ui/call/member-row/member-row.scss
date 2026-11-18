@@ -4,7 +4,7 @@
   gap: 14px;
   height: 52px;
   padding: 0 12px;
-  border-radius: var(--mat-sys-corner-medium);
+  border-radius: var(--row-radius, var(--mat-sys-corner-medium));
   transition:
     background-color 150ms,
     opacity 150ms;
