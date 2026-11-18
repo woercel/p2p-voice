@@ -1,10 +1,12 @@
 import { TestBed } from '@angular/core/testing';
+import { inviteHash } from '../../core/invite';
 import { Lobby } from './lobby';
 
 describe('Lobby', () => {
   beforeEach(() => {
     localStorage.clear();
-    history.replaceState(null, '', '/#r=testroom&p=secret&v=mqtt');
+    const hash = inviteHash({ room: 'testroom', password: 'secret', via: 'mqtt' });
+    history.replaceState(null, '', `/#${hash}`);
   });
 
   it('prefills the room from the invite link and shows the invitation', async () => {
