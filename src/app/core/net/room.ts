@@ -1,5 +1,6 @@
 import { DOCUMENT, Injectable, computed, effect, inject, signal, untracked } from '@angular/core';
 import type { MessageAction, Room } from '@trystero-p2p/nostr';
+import { Subject } from 'rxjs';
 import { AudioEngine, Playback } from '../audio/audio-engine';
 import {
   ChannelMessage,
@@ -35,6 +36,8 @@ const EXPECT_MS = 15_000;
 const RECONNECT_MS = 15_000;
 /** Leaving should not hang on a goodbye that cannot be delivered anymore. */
 const GOODBYE_WAIT_MS = 300;
+/** One peer asking again and again to set up the recording is shown once in this time. */
+const SETUP_REQUEST_QUIET_MS = 60_000;
 
 const STRATEGIES: Record<
   Rendezvous,
@@ -88,6 +91,9 @@ export class RoomService {
   private channelAction: MessageAction<ChannelMessage> | null = null;
   private rosterAction: MessageAction<RosterEntry[]> | null = null;
   private byeAction: MessageAction<string> | null = null;
+  private setupAction: MessageAction<string> | null = null;
+  /** When each peer last asked us to set up the recording. */
+  private readonly setupAskedAt = new Map<string, number>();
   /** Peers that said goodbye; their connection closing is a real leave, not a drop. */
   private readonly departing = new Set<string>();
   /** A reloaded page comes back under a new peer id; its volume follows the name. */
@@ -112,6 +118,8 @@ export class RoomService {
   /** The browser says the network is gone; peers drop and come back once it returns. */
   readonly offline = signal(typeof navigator !== 'undefined' && navigator.onLine === false);
   private readonly selectedChannel = signal<string>(LOBBY);
+  /** Someone in the room asks us to set up our recording; carries their name. */
+  readonly setupRequests = new Subject<string>();
 
   readonly channel = computed(() => resolveChannel(this.channelState(), this.selectedChannel()));
   readonly peerList = computed(() => [...this.peers().values()]);
@@ -164,7 +172,7 @@ export class RoomService {
     const channel = this.channelState().channels.find((c) => c.id === this.channel());
     return {
       name: this.settings.name().trim() || this.i18n.text('peer.anonymous'),
-      muted: this.audio.muted(),
+      muted: this.audio.silent(),
       channel: this.channel(),
       channelNumber: channel?.number ?? null,
       channelCreatedAt: channel?.createdAt ?? null,
@@ -219,6 +227,8 @@ export class RoomService {
         );
       this.byeAction = room.makeAction<string>('bye');
       this.byeAction.onMessage = (_, { peerId }) => void this.departing.add(peerId);
+      this.setupAction = room.makeAction<string>('setup');
+      this.setupAction.onMessage = (_, { peerId }) => this.receiveSetupRequest(peerId);
 
       room.onPeerJoin = (peerId) => this.welcome(peerId, stream);
       room.onPeerLeave = (peerId) => this.peerLeft(peerId);
@@ -260,6 +270,8 @@ export class RoomService {
     this.channelAction = null;
     this.rosterAction = null;
     this.byeAction = null;
+    this.setupAction = null;
+    this.setupAskedAt.clear();
     this.departing.clear();
     this.volumeByName.clear();
     this.expected.set(new Map());
@@ -302,6 +314,20 @@ export class RoomService {
     this.patchPeer(peerId, { volume });
     const name = this.peers().get(peerId)?.name;
     if (name) this.volumeByName.set(name, volume);
+  }
+
+  /** Asks a peer to run the recording setup. Older versions just ignore it. */
+  requestSetup(peerId: string): void {
+    void this.setupAction?.send('', { target: peerId });
+  }
+
+  private receiveSetupRequest(peerId: string): void {
+    const name = this.peers().get(peerId)?.name;
+    const now = performance.now();
+    const last = this.setupAskedAt.get(peerId);
+    if (!name || (last !== undefined && now - last < SETUP_REQUEST_QUIET_MS)) return;
+    this.setupAskedAt.set(peerId, now);
+    this.setupRequests.next(name);
   }
 
   analyserFor(peerId: string): AnalyserNode | null {

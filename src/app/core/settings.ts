@@ -23,6 +23,8 @@ export class Settings {
   readonly gateDb = persisted('gateDb', GATE_OFF_DB);
   /** Gain applied to the microphone before the gate, in percent. */
   readonly micVolume = persisted('micVolume', 100);
+  /** The recording setup was offered once after joining; it is not offered again unasked. */
+  readonly setupOffered = persisted('setupOffered', false);
   readonly muteKey = persisted<KeyBinding>('muteKey', DEFAULT_MUTE_KEY);
   readonly theme = persisted<ThemeMode>('theme', 'system');
 }

@@ -3,6 +3,8 @@ export const METER_CEIL_DB = -6;
 export const GATE_OFF_DB = -70;
 export const SPEAKING_DB = -45;
 export const SPEAKING_HOLD_MS = 300;
+/** The microphone volume goes up to this, in percent. */
+export const MIC_VOLUME_MAX = 200;
 
 export const dbToLinear = (db: number): number => 10 ** (db / 20);
 

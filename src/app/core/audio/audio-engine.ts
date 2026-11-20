@@ -1,7 +1,7 @@
 import { Injectable, computed, effect, inject, signal } from '@angular/core';
 import { Settings } from '../settings';
 import { Cue, playCue } from './cues';
-import { dbToLinear, isGateEnabled } from './levels';
+import { MIC_VOLUME_MAX, dbToLinear, isGateEnabled } from './levels';
 
 export type Playback = {
   readonly analyser: AnalyserNode;
@@ -11,8 +11,8 @@ export type Playback = {
 
 const HIDDEN_DEVICE_IDS = ['', 'default', 'communications'];
 const RESUME_WAIT_MS = 500;
-
-export const MIC_VOLUME_MAX = 200;
+const PROBE_GAIN = 0.08;
+const PROBE_FADE_S = 0.03;
 
 /** Percent to linear gain; a broken stored value falls back to unchanged. */
 const micGain = (percent: number): number =>
@@ -37,12 +37,22 @@ export class AudioEngine {
 
   readonly sendStream = signal<MediaStream | null>(null);
   readonly selfAnalyser = signal<AnalyserNode | null>(null);
+  /** The microphone as it comes in, before volume and gate. */
+  readonly rawAnalyser = signal<AnalyserNode | null>(null);
   readonly muted = signal(false);
+  /**
+   * Nothing is sent while the recording is being set up. Kept apart from `muted`, so the mute
+   * key cannot let the test noises through and the own mute state stays as it was.
+   */
+  readonly holdBack = signal(false);
+  readonly silent = computed(() => this.muted() || this.holdBack());
   readonly gateOpen = signal(true);
   readonly voiceActive = signal(false);
   /** The browser holds audio back until the next click or key press. */
   readonly soundBlocked = signal(false);
-  readonly speaking = computed(() => this.voiceActive() && this.gateOpen() && !this.muted());
+  readonly speaking = computed(() => this.voiceActive() && this.gateOpen() && !this.silent());
+  /** The input is the built-in test tone instead of a microphone. */
+  readonly usingTestTone = signal(false);
   readonly devices = signal<MediaDeviceInfo[]>([]);
   readonly inputs = computed(() => this.devices().filter((d) => d.kind === 'audioinput'));
   readonly outputs = computed(() => this.devices().filter((d) => d.kind === 'audiooutput'));
@@ -62,7 +72,7 @@ export class AudioEngine {
       this.inputGain.gain.setTargetAtTime(gain, this.context.currentTime, 0.01);
     });
     effect(() => {
-      const muted = this.muted();
+      const muted = this.silent();
       this.sendStream()
         ?.getAudioTracks()
         .forEach((track) => (track.enabled = !muted));
@@ -87,6 +97,7 @@ export class AudioEngine {
     const context = new AudioContext({ latencyHint: 'interactive' });
     this.context = context;
     this.testTone = testTone;
+    this.usingTestTone.set(testTone);
     context.onstatechange = () => this.soundBlocked.set(context.state === 'suspended');
     // Rejoining after a reload has no click behind it, and browsers may then hold audio back
     // until the next gesture. Waiting for that would stall the join, so only wait briefly.
@@ -108,6 +119,10 @@ export class AudioEngine {
       analyser.fftSize = 1024;
       this.inputGain.connect(analyser);
       this.selfAnalyser.set(analyser);
+      const raw = context.createAnalyser();
+      raw.fftSize = 2048;
+      raw.smoothingTimeConstant = 0;
+      this.rawAnalyser.set(raw);
 
       this.connectInput(await this.openInput());
       this.sendStream.set(destination.stream);
@@ -171,6 +186,33 @@ export class AudioEngine {
     if (this.context?.state === 'running') playCue(this.context, cue);
   }
 
+  /**
+   * Plays quiet tones on the output only, never into the sent stream, so the setup can hear
+   * whether the microphone picks up the speakers. Resolves once they have faded out.
+   */
+  async playProbe(frequencies: readonly number[], durationMs: number): Promise<void> {
+    const context = this.context;
+    if (!context) return;
+    const start = context.currentTime;
+    const end = start + durationMs / 1000;
+    const gain = context.createGain();
+    gain.gain.setValueAtTime(0, start);
+    gain.gain.linearRampToValueAtTime(PROBE_GAIN, start + PROBE_FADE_S);
+    gain.gain.setValueAtTime(PROBE_GAIN, end - PROBE_FADE_S);
+    gain.gain.linearRampToValueAtTime(0, end);
+    gain.connect(context.destination);
+    const oscillators = frequencies.map((frequency) => {
+      const oscillator = context.createOscillator();
+      oscillator.frequency.value = frequency;
+      oscillator.connect(gain);
+      oscillator.start(start);
+      oscillator.stop(end);
+      return oscillator;
+    });
+    await new Promise<void>((resolve) => (oscillators[0].onended = () => resolve()));
+    gain.disconnect();
+  }
+
   async stop(): Promise<void> {
     this.rawStream?.getTracks().forEach((track) => track.stop());
     this.sendStream()
@@ -184,7 +226,10 @@ export class AudioEngine {
     this.rawStream = null;
     this.sendStream.set(null);
     this.selfAnalyser.set(null);
+    this.rawAnalyser.set(null);
     this.muted.set(false);
+    this.holdBack.set(false);
+    this.usingTestTone.set(false);
     this.gateOpen.set(true);
     this.soundBlocked.set(false);
   }
@@ -234,6 +279,8 @@ export class AudioEngine {
     this.rawStream = stream;
     this.input = this.context.createMediaStreamSource(stream);
     this.input.connect(this.inputGain);
+    const raw = this.rawAnalyser();
+    if (raw) this.input.connect(raw);
   }
 
   private createTestTone(context: AudioContext): MediaStream {

@@ -117,5 +117,37 @@
     "micDenied": "Der Zugriff aufs Mikrofon wurde verweigert.",
     "micMissing": "Kein Mikrofon gefunden.",
     "failed": "Beitreten fehlgeschlagen: {{detail}}"
+  },
+  "setup": {
+    "title": "Aufnahme einrichten",
+    "intro": "In {{count}} kurzen Schritten misst die App dein Mikrofon und stellt Mikrofonlautstärke und Sprachschwelle passend ein.",
+    "introSilent": "Solange es läuft, hören dich die anderen nicht.",
+    "introFiltered": "Der Kopfhörer-Modus ist aus. Der Browser regelt die Lautstärke dann selbst nach, die Messung ist deshalb nur ungefähr.",
+    "silence": "Sei kurz ganz leise.",
+    "speakers": "Gleich kommen ein paar leise Töne. Bleib still.",
+    "typing": "Tipp und klick jetzt ganz normal, so wie nebenbei im Spiel.",
+    "typingField": "Hier kannst du tippen",
+    "speech": "Lies den Satz in normaler Lautstärke vor, gern zweimal:",
+    "sentence": "Franz jagt im komplett verwahrlosten Taxi quer durch Bayern, und der Fahrgast singt dabei laut mit.",
+    "levels": "Hintergrund {{noise}} dB · Tippen {{typing}} dB · Stimme {{speech}} dB",
+    "noSpeech": "Ich habe dich kaum gehört. Prüf, ob das richtige Mikrofon gewählt ist, und versuch es noch mal.",
+    "warning": {
+      "speakers": "Dein Mikrofon hört deine Lautsprecher. Schalte den Kopfhörer-Modus aus, sonst hören sich die anderen selbst.",
+      "tooQuiet": "Dein Mikrofon liefert sehr wenig Pegel, selbst die höchste Lautstärke reicht nicht. Vermutlich steht irgendwo ein Regler unter Maximum: in Windows oder in der Software deines Headsets (z. B. SteelSeries GG, Logitech G Hub). Dreh ihn hoch und miss noch mal.",
+      "clipping": "Dein Mikrofon übersteuert schon, bevor es hier ankommt. Dreh den Pegel in Windows oder in der Software deines Headsets herunter und miss noch mal.",
+      "typingAudible": "Tippen ist fast so laut wie deine Stimme. Die Schwelle hält nur das Rauschen zurück, Tastenanschläge kommen durch. Die Stumm-Taste hilft.",
+      "noisy": "Der Hintergrund ist zu laut für eine Sprachschwelle, sie bleibt aus. Ohne Kopfhörer-Modus filtert der Browser das Rauschen."
+    },
+    "tryIt": "Sprich zum Ausprobieren. Was grau bleibt, liegt unter der Schwelle und wird nicht gesendet.",
+    "step": "Schritt {{current}} von {{total}}",
+    "start": "Los geht's",
+    "again": "Noch mal",
+    "apply": "Übernehmen",
+    "open": "Einrichten",
+    "offer": "Soll die App deine Aufnahme einmal einrichten?",
+    "offerAgain": "Neues Mikrofon oder neuer Modus: Aufnahme neu einrichten?",
+    "requested": "{{name}} bittet dich, deine Aufnahme einzurichten.",
+    "ask": "Aufnahme einrichten lassen",
+    "asked": "Anfrage an {{name}} geschickt"
   }
 }

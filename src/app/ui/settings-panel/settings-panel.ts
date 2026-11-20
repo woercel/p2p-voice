@@ -11,13 +11,14 @@ import { MatSliderModule } from '@angular/material/slider';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { TranslatePipe } from '@ngx-translate/core';
-import { AudioEngine, MIC_VOLUME_MAX } from '../../core/audio/audio-engine';
-import { GATE_OFF_DB, METER_CEIL_DB, isGateEnabled } from '../../core/audio/levels';
+import { AudioEngine } from '../../core/audio/audio-engine';
+import { GATE_OFF_DB, METER_CEIL_DB, MIC_VOLUME_MAX, isGateEnabled } from '../../core/audio/levels';
 import { MuteHotkey } from '../../core/hotkey/mute-hotkey';
 import { I18n, Language } from '../../core/i18n/language';
 import { RoomService } from '../../core/net/room';
 import { BITRATES, Settings, ThemeMode } from '../../core/settings';
 import { LevelMeter } from '../level-meter/level-meter';
+import { RecordingSetupLauncher } from '../recording-setup/recording-setup-launcher';
 
 @Component({
   selector: 'app-settings-panel',
@@ -48,6 +49,7 @@ export class SettingsPanel {
   protected readonly room = inject(RoomService);
   private readonly snackBar = inject(MatSnackBar);
   protected readonly i18n = inject(I18n);
+  private readonly setup = inject(RecordingSetupLauncher);
 
   protected readonly languages: { value: Language; label: string; short: string }[] = [
     { value: 'de', label: 'Deutsch', short: 'DE' },
@@ -85,12 +87,31 @@ export class SettingsPanel {
     this.reopen(() => this.settings.headphoneMode.set(previous));
   }
 
-  /** The old microphone stays open when the new one fails, so the setting goes back to match it. */
+  protected openSetup(): void {
+    this.close.emit();
+    void this.setup.open();
+  }
+
+  /**
+   * The old microphone stays open when the new one fails, so the setting goes back to match it.
+   * A new microphone or mode changes the levels, so the setup is offered again.
+   */
   private reopen(revert: () => void): void {
-    this.audio.reopenInput().catch(() => {
-      revert();
-      this.snackBar.open(this.i18n.text('devices.reopenFailed'), undefined, { duration: 4000 });
-    });
+    this.audio.reopenInput().then(
+      () => {
+        if (!this.joined()) return;
+        this.snackBar
+          .open(this.i18n.text('setup.offerAgain'), this.i18n.text('setup.open'), {
+            duration: 8000,
+          })
+          .onAction()
+          .subscribe(() => this.openSetup());
+      },
+      () => {
+        revert();
+        this.snackBar.open(this.i18n.text('devices.reopenFailed'), undefined, { duration: 4000 });
+      },
+    );
   }
 }
 

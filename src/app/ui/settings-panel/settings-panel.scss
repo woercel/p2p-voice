@@ -58,6 +58,10 @@ mat-form-field {
   font-variant-numeric: tabular-nums;
 }
 
+.setup {
+  align-self: flex-start;
+}
+
 .volume {
   display: flex;
   flex-direction: column;

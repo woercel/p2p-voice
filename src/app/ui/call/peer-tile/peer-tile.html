@@ -31,6 +31,10 @@
         </mat-slider>
         <span class="value">{{ peer().volume }} %</span>
       </div>
+      <button matButton class="ask-setup" (click)="requestSetup()">
+        <mat-icon>auto_fix_high</mat-icon>
+        {{ 'setup.ask' | translate }}
+      </button>
     </div>
   </mat-menu>
 }

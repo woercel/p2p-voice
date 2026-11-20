@@ -117,5 +117,37 @@
     "micDenied": "Microphone access was denied.",
     "micMissing": "No microphone found.",
     "failed": "Could not join: {{detail}}"
+  },
+  "setup": {
+    "title": "Set up recording",
+    "intro": "In {{count}} short steps the app measures your microphone and sets the microphone volume and voice threshold to match.",
+    "introSilent": "While it runs, the others cannot hear you.",
+    "introFiltered": "Headphone mode is off. The browser then adjusts the volume on its own, so the measurement is only approximate.",
+    "silence": "Stay quiet for a moment.",
+    "speakers": "A few quiet tones are coming up. Stay quiet.",
+    "typing": "Now type and click as usual, like you would while gaming.",
+    "typingField": "You can type here",
+    "speech": "Read the sentence aloud at your normal volume, twice if you like:",
+    "sentence": "The quick brown fox jumps over the lazy dog, then takes a long nap in the warm afternoon sun.",
+    "levels": "Background {{noise}} dB · Typing {{typing}} dB · Voice {{speech}} dB",
+    "noSpeech": "I could hardly hear you. Check that the right microphone is selected and try again.",
+    "warning": {
+      "speakers": "Your microphone picks up your speakers. Turn headphone mode off, otherwise the others hear themselves.",
+      "tooQuiet": "Your microphone delivers very little level; even the highest volume is not enough. Most likely a slider somewhere is below maximum: in Windows or in your headset's software (e.g. SteelSeries GG, Logitech G Hub). Turn it up and measure again.",
+      "clipping": "Your microphone already clips before it gets here. Turn the level down in Windows or in your headset's software and measure again.",
+      "typingAudible": "Typing is almost as loud as your voice. The threshold only holds back the noise; keystrokes still get through. The mute key helps.",
+      "noisy": "The background is too loud for a voice threshold, so it stays off. Without headphone mode the browser filters the noise."
+    },
+    "tryIt": "Talk to try it out. Whatever stays grey is below the threshold and is not sent.",
+    "step": "Step {{current}} of {{total}}",
+    "start": "Let's go",
+    "again": "Again",
+    "apply": "Apply",
+    "open": "Set up",
+    "offer": "Should the app set up your recording once?",
+    "offerAgain": "New microphone or mode: set up recording again?",
+    "requested": "{{name}} asks you to set up your recording.",
+    "ask": "Ask to set up recording",
+    "asked": "Request sent to {{name}}"
   }
 }

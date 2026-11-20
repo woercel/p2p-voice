@@ -1,0 +1,111 @@
+<h2 mat-dialog-title>{{ 'setup.title' | translate }}</h2>
+
+<mat-dialog-content>
+  <div class="step" aria-live="polite">
+    <mat-icon class="icon" [class.failed]="result()?.ok === false">{{
+      result()?.ok === false ? 'error' : icon()
+    }}</mat-icon>
+
+    @switch (step()) {
+      @case ('intro') {
+        <p>{{ 'setup.intro' | translate: { count: stepCount } }}</p>
+        <p class="hint">{{ 'setup.introSilent' | translate }}</p>
+        @if (filtered) {
+          <p class="hint">{{ 'setup.introFiltered' | translate }}</p>
+        }
+      }
+      @case ('silence') {
+        <p class="instruction">{{ 'setup.silence' | translate }}</p>
+      }
+      @case ('speakers') {
+        <p class="instruction">{{ 'setup.speakers' | translate }}</p>
+      }
+      @case ('typing') {
+        <p class="instruction">{{ 'setup.typing' | translate }}</p>
+        <textarea
+          class="scratch"
+          rows="2"
+          spellcheck="false"
+          [attr.aria-label]="'setup.typingField' | translate"
+          [placeholder]="'setup.typingField' | translate"
+        ></textarea>
+      }
+      @case ('speech') {
+        <p class="instruction">{{ 'setup.speech' | translate }}</p>
+        <blockquote>{{ 'setup.sentence' | translate }}</blockquote>
+      }
+      @case ('result') {
+        @if (result(); as result) {
+          @if (result.ok) {
+            <dl class="values">
+              <dt>{{ 'devices.micVolume' | translate }}</dt>
+              <dd>{{ result.micVolume }} %</dd>
+              <dt>{{ 'self.gate' | translate }}</dt>
+              <dd>
+                {{ gateEnabled() ? result.gateDb + ' dB' : ('self.gateOff' | translate) }}
+              </dd>
+            </dl>
+            <p class="levels">
+              {{
+                'setup.levels'
+                  | translate
+                    : {
+                        noise: result.noiseDb,
+                        typing: result.typingDb,
+                        speech: result.speechDb,
+                      }
+              }}
+            </p>
+          } @else {
+            <p>{{ 'setup.noSpeech' | translate }}</p>
+          }
+        }
+        @for (warning of warnings(); track warning) {
+          <p class="warning">
+            <mat-icon>warning</mat-icon>{{ 'setup.warning.' + warning | translate }}
+          </p>
+        }
+        @if (result()?.ok) {
+          <p class="hint">{{ 'setup.tryIt' | translate }}</p>
+        }
+      }
+    }
+  </div>
+
+  @if (running()) {
+    <p class="counter">
+      {{ 'setup.step' | translate: { current: stepNumber(), total: stepCount } }}
+    </p>
+    <div class="meter" [appLevelMeter]="audio.rawAnalyser()"></div>
+    <mat-progress-bar mode="determinate" [value]="progress()" />
+  } @else if (step() === 'result' && result()?.ok) {
+    <div
+      class="meter"
+      [appLevelMeter]="audio.selfAnalyser()"
+      [belowDb]="gateEnabled() ? settings.gateDb() : null"
+    >
+      @if (gateEnabled()) {
+        <span class="marker" [style.left.%]="gateMarker()"></span>
+      }
+    </div>
+  }
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  @switch (step()) {
+    @case ('intro') {
+      <button matButton mat-dialog-close>{{ 'dialog.cancel' | translate }}</button>
+      <button matButton="filled" (click)="start()">{{ 'setup.start' | translate }}</button>
+    }
+    @case ('result') {
+      <button matButton mat-dialog-close>{{ 'dialog.cancel' | translate }}</button>
+      <button matButton (click)="start()">{{ 'setup.again' | translate }}</button>
+      @if (result()?.ok) {
+        <button matButton="filled" (click)="apply()">{{ 'setup.apply' | translate }}</button>
+      }
+    }
+    @default {
+      <button matButton mat-dialog-close>{{ 'dialog.cancel' | translate }}</button>
+    }
+  }
+</mat-dialog-actions>

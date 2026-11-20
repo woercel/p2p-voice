@@ -47,6 +47,13 @@
     </mat-select>
   </mat-form-field>
 
+  @if (joined()) {
+    <button matButton="tonal" class="setup" (click)="openSetup()">
+      <mat-icon>auto_fix_high</mat-icon>
+      {{ 'setup.title' | translate }}
+    </button>
+  }
+
   <div class="volume">
     <div class="row">
       <span class="label">{{ 'devices.micVolume' | translate }}</span>

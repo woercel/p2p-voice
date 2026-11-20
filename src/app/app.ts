@@ -21,11 +21,15 @@ import { MuteHotkey } from './core/hotkey/mute-hotkey';
 import { I18n } from './core/i18n/language';
 import { inviteHash } from './core/invite';
 import { RoomService } from './core/net/room';
+import { Settings } from './core/settings';
 import { Theme } from './core/theme';
 import { Call } from './ui/call/call';
 import { Lobby } from './ui/lobby/lobby';
 import { Logo } from './ui/logo/logo';
+import { RecordingSetupLauncher } from './ui/recording-setup/recording-setup-launcher';
 import { SettingsPanel } from './ui/settings-panel/settings-panel';
+
+const SETUP_OFFER_MS = 10_000;
 
 const SPLASH_MIN_MS = 900;
 const SPLASH_FADE_MS = 400;
@@ -88,6 +92,25 @@ export class App {
         }
       });
     });
+
+    const settings = inject(Settings);
+    const setup = inject(RecordingSetupLauncher);
+    const offerSetup = (message: string) =>
+      this.snackBar
+        .open(message, this.i18n.text('setup.open'), { duration: SETUP_OFFER_MS })
+        .onAction()
+        .subscribe(() => void setup.open());
+    effect(() => {
+      const joined = this.room.status() === 'joined';
+      untracked(() => {
+        if (!joined || settings.setupOffered()) return;
+        settings.setupOffered.set(true);
+        offerSetup(this.i18n.text('setup.offer'));
+      });
+    });
+    this.room.setupRequests.subscribe((name) =>
+      offerSetup(this.i18n.text('setup.requested', { name })),
+    );
 
     const document = inject(DOCUMENT);
     afterNextRender(() => {

@@ -9,9 +9,11 @@ import {
   untracked,
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatSliderModule } from '@angular/material/slider';
+import { MatSnackBar } from '@angular/material/snack-bar';
 import { TranslatePipe } from '@ngx-translate/core';
 import { I18n } from '../../../core/i18n/language';
 import { Peer, RoomService } from '../../../core/net/room';
@@ -20,7 +22,15 @@ import { MemberRow } from '../member-row/member-row';
 
 @Component({
   selector: 'app-peer-tile',
-  imports: [FormsModule, MatIconModule, MatMenuModule, MatSliderModule, TranslatePipe, MemberRow],
+  imports: [
+    FormsModule,
+    MatButtonModule,
+    MatIconModule,
+    MatMenuModule,
+    MatSliderModule,
+    TranslatePipe,
+    MemberRow,
+  ],
   templateUrl: './peer-tile.html',
   styleUrl: './peer-tile.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -31,6 +41,7 @@ export class PeerTile {
 
   private readonly room = inject(RoomService);
   private readonly i18n = inject(I18n);
+  private readonly snackBar = inject(MatSnackBar);
   protected readonly speaking = computed(() => this.room.speakingPeers().has(this.peer().id));
 
   constructor() {
@@ -57,6 +68,13 @@ export class PeerTile {
 
   protected setVolume(volume: number): void {
     this.room.setVolume(this.peer().id, volume);
+  }
+
+  protected requestSetup(): void {
+    this.room.requestSetup(this.peer().id);
+    this.snackBar.open(this.i18n.text('setup.asked', { name: this.name() }), undefined, {
+      duration: 3000,
+    });
   }
 }
 
