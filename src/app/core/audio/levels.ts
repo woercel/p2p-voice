@@ -1,7 +1,12 @@
 export const METER_FLOOR_DB = -70;
 export const METER_CEIL_DB = -6;
 export const GATE_OFF_DB = -70;
-export const SPEAKING_DB = -45;
+/**
+ * Anything above this counts as talking: whatever arrives from someone, however quiet. A closed
+ * gate or mute sends silence, which stays far below; the line sits just under the smallest
+ * step of 16-bit audio, so codec rounding does not count.
+ */
+export const SPEAKING_DB = -90;
 export const SPEAKING_HOLD_MS = 300;
 /** The microphone volume goes up to this, in percent. */
 export const MIC_VOLUME_MAX = 200;

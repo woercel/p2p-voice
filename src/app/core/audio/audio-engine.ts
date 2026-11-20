@@ -167,8 +167,10 @@ export class AudioEngine {
     const gain = context.createGain();
     const analyser = context.createAnalyser();
     analyser.fftSize = 1024;
+    // The meter shows what they send, not how loud we turned them: someone turned down still
+    // shows as talking.
+    source.connect(analyser);
     source.connect(gain);
-    gain.connect(analyser);
     gain.connect(context.destination);
 
     return {
