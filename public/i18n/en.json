@@ -144,7 +144,7 @@
     "again": "Again",
     "apply": "Apply",
     "open": "Set up",
-    "offer": "Should the app set up your recording once?",
+    "lobbyHint": "First time here? Take a moment to set up your microphone, so you sound right from the start.",
     "offerAgain": "New microphone or mode: set up recording again?",
     "requested": "{{name}} asks you to set up your recording.",
     "ask": "Ask to set up recording",

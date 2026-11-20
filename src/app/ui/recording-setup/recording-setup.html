@@ -9,7 +9,9 @@
     @switch (step()) {
       @case ('intro') {
         <p>{{ 'setup.intro' | translate: { count: stepCount } }}</p>
-        <p class="hint">{{ 'setup.introSilent' | translate }}</p>
+        @if (inCall) {
+          <p class="hint">{{ 'setup.introSilent' | translate }}</p>
+        }
         @if (filtered) {
           <p class="hint">{{ 'setup.introFiltered' | translate }}</p>
         }
@@ -78,6 +80,9 @@
     </p>
     <div class="meter" [appLevelMeter]="audio.rawAnalyser()"></div>
     <mat-progress-bar mode="determinate" [value]="progress()" />
+  } @else if (step() === 'intro') {
+    <!-- Shows right away that the right microphone is listening. -->
+    <div class="meter" [appLevelMeter]="audio.rawAnalyser()"></div>
   } @else if (step() === 'result' && result()?.ok) {
     <div
       class="meter"

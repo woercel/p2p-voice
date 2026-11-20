@@ -144,7 +144,7 @@
     "again": "Noch mal",
     "apply": "Übernehmen",
     "open": "Einrichten",
-    "offer": "Soll die App deine Aufnahme einmal einrichten?",
+    "lobbyHint": "Zum ersten Mal hier? Stell vorher kurz dein Mikrofon ein, dann klingst du gleich richtig.",
     "offerAgain": "Neues Mikrofon oder neuer Modus: Aufnahme neu einrichten?",
     "requested": "{{name}} bittet dich, deine Aufnahme einzurichten.",
     "ask": "Aufnahme einrichten lassen",

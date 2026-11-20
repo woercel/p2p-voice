@@ -21,7 +21,6 @@ import { MuteHotkey } from './core/hotkey/mute-hotkey';
 import { I18n } from './core/i18n/language';
 import { inviteHash } from './core/invite';
 import { RoomService } from './core/net/room';
-import { Settings } from './core/settings';
 import { Theme } from './core/theme';
 import { Call } from './ui/call/call';
 import { Lobby } from './ui/lobby/lobby';
@@ -93,23 +92,15 @@ export class App {
       });
     });
 
-    const settings = inject(Settings);
+    // The first-time offer lives in the lobby; in the call only others ask.
     const setup = inject(RecordingSetupLauncher);
-    const offerSetup = (message: string) =>
-      this.snackBar
-        .open(message, this.i18n.text('setup.open'), { duration: SETUP_OFFER_MS })
-        .onAction()
-        .subscribe(() => void setup.open());
-    effect(() => {
-      const joined = this.room.status() === 'joined';
-      untracked(() => {
-        if (!joined || settings.setupOffered()) return;
-        settings.setupOffered.set(true);
-        offerSetup(this.i18n.text('setup.offer'));
-      });
-    });
     this.room.setupRequests.subscribe((name) =>
-      offerSetup(this.i18n.text('setup.requested', { name })),
+      this.snackBar
+        .open(this.i18n.text('setup.requested', { name }), this.i18n.text('setup.open'), {
+          duration: SETUP_OFFER_MS,
+        })
+        .onAction()
+        .subscribe(() => void setup.open()),
     );
 
     const document = inject(DOCUMENT);

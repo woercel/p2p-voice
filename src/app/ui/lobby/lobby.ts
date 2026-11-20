@@ -10,6 +10,7 @@ import { FormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatExpansionModule } from '@angular/material/expansion';
 import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSelectModule } from '@angular/material/select';
@@ -20,6 +21,7 @@ import { RoomService } from '../../core/net/room';
 import { Settings } from '../../core/settings';
 import { DirectLinks } from '../direct-links/direct-links';
 import { Logo } from '../logo/logo';
+import { RecordingSetupLauncher } from '../recording-setup/recording-setup-launcher';
 
 type JoinError = { key: string; params?: Record<string, string> };
 
@@ -30,6 +32,7 @@ type JoinError = { key: string; params?: Record<string, string> };
     MatButtonModule,
     MatExpansionModule,
     MatFormFieldModule,
+    MatIconModule,
     MatInputModule,
     MatProgressSpinnerModule,
     MatSelectModule,
@@ -53,6 +56,7 @@ export class Lobby {
   protected readonly joining = computed(() => this.room.status() === 'joining');
   protected readonly error = signal<JoinError | null>(null);
   protected readonly rendezvous = RENDEZVOUS;
+  protected readonly setup = inject(RecordingSetupLauncher);
 
   constructor() {
     // A reload inside a call lands here with the same link; go straight back in.
@@ -61,11 +65,14 @@ export class Lobby {
 
   protected async join(): Promise<void> {
     const room = this.roomName().trim();
-    if (!room || this.joining()) return;
+    // The setup holds the microphone until it is closed; the room needs it for itself.
+    if (!room || this.joining() || this.setup.isOpen()) return;
     const invite = { room, password: this.password(), via: this.via() };
     this.error.set(null);
     try {
       await this.room.join(invite, this.parsed.testTone);
+      // Whoever joined has seen the setup hint here; it is not pushed on them later.
+      this.settings.setupOffered.set(true);
       history.replaceState(null, '', `#${inviteHash(invite)}`);
     } catch (error) {
       this.error.set(joinError(error));

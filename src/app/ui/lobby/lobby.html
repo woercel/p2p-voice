@@ -13,7 +13,7 @@
   matButton="filled"
   class="join"
   (click)="join()"
-  [disabled]="joining() || !roomName().trim()"
+  [disabled]="joining() || setup.isOpen() || !roomName().trim()"
 >
   @if (joining()) {
     <mat-spinner diameter="18" />
@@ -23,6 +23,17 @@
 
 @if (error(); as error) {
   <p class="error" role="alert">{{ error.key | translate: error.params }}</p>
+}
+
+<!-- Only for newcomers; everyone else finds the setup in the settings. -->
+@if (!settings.setupOffered()) {
+  <div class="setup">
+    <p>{{ 'setup.lobbyHint' | translate }}</p>
+    <button matButton="tonal" (click)="setup.open()" [disabled]="joining() || setup.isOpen()">
+      <mat-icon>auto_fix_high</mat-icon>
+      {{ 'setup.title' | translate }}
+    </button>
+  </div>
 }
 
 <mat-expansion-panel class="room-settings">

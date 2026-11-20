@@ -69,6 +69,9 @@ export class RecordingSetup {
   protected readonly audio = inject(AudioEngine);
   protected readonly settings = inject(Settings);
   private readonly ref = inject<MatDialogRef<RecordingSetup>>(MatDialogRef);
+  private readonly room = inject(RoomService);
+  /** Opened from the lobby, nobody can hear us anyway. */
+  protected readonly inCall = this.room.status() === 'joined';
 
   private readonly original = {
     micVolume: this.settings.micVolume(),
@@ -105,10 +108,9 @@ export class RecordingSetup {
   });
 
   constructor() {
-    const room = inject(RoomService);
-    // Leaving the room ends the microphone, and with it the setup.
+    // Leaving the room ends the microphone, and with it a setup started in the call.
     effect(() => {
-      if (room.status() !== 'joined') this.ref.close();
+      if (this.inCall && this.room.status() !== 'joined') this.ref.close();
     });
     inject(DestroyRef).onDestroy(() => {
       this.cancelled = true;
