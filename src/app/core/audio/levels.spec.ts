@@ -1,4 +1,11 @@
-import { dbToLinear, isGateEnabled, linearToDb, meterPercent, rmsDb } from './levels';
+import {
+  dbToLinear,
+  isGateEnabled,
+  linearToDb,
+  meterPercent,
+  percentToGain,
+  rmsDb,
+} from './levels';
 
 describe('levels', () => {
   it('converts between dB and linear', () => {
@@ -24,5 +31,14 @@ describe('levels', () => {
   it('treats the bottom of the range as gate off', () => {
     expect(isGateEnabled(-70)).toBe(false);
     expect(isGateEnabled(-69)).toBe(true);
+  });
+
+  it('converts percentage volume to linear gain and clamps within [0, max]', () => {
+    expect(percentToGain(0, 200)).toBe(0);
+    expect(percentToGain(100, 200)).toBe(1);
+    expect(percentToGain(200, 200)).toBe(2);
+    expect(percentToGain(-20, 200)).toBe(0);
+    expect(percentToGain(350, 200)).toBe(2);
+    expect(percentToGain(Number.NaN, 200)).toBe(1);
   });
 });

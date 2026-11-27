@@ -12,7 +12,13 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { TranslatePipe } from '@ngx-translate/core';
 import { AudioEngine } from '../../core/audio/audio-engine';
-import { GATE_OFF_DB, METER_CEIL_DB, MIC_VOLUME_MAX, isGateEnabled } from '../../core/audio/levels';
+import {
+  GATE_OFF_DB,
+  METER_CEIL_DB,
+  MIC_VOLUME_MAX,
+  OUTPUT_VOLUME_MAX,
+  isGateEnabled,
+} from '../../core/audio/levels';
 import { MuteHotkey } from '../../core/hotkey/mute-hotkey';
 import { I18n, Language } from '../../core/i18n/language';
 import { RoomService } from '../../core/net/room';
@@ -68,6 +74,7 @@ export class SettingsPanel {
 
   protected readonly joined = computed(() => this.room.status() !== 'idle');
   protected readonly micVolumeMax = MIC_VOLUME_MAX;
+  protected readonly outputVolumeMax = OUTPUT_VOLUME_MAX;
   protected readonly gateOffDb = GATE_OFF_DB;
   protected readonly gateEnabled = computed(() => isGateEnabled(this.settings.gateDb()));
   protected readonly meterCeilDb = METER_CEIL_DB;

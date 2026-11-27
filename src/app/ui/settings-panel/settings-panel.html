@@ -37,6 +37,21 @@
     </mat-form-field>
   }
 
+  <div class="volume">
+    <div class="row">
+      <span class="label">{{ 'devices.outputVolume' | translate }}</span>
+      <span class="value">{{ settings.outputVolume() }} %</span>
+    </div>
+    <mat-slider min="0" [max]="outputVolumeMax" step="5">
+      <input
+        matSliderThumb
+        [(ngModel)]="settings.outputVolume"
+        [attr.aria-label]="'devices.outputVolume' | translate"
+        [attr.aria-valuetext]="settings.outputVolume() + ' %'"
+      />
+    </mat-slider>
+  </div>
+
   <mat-form-field>
     <mat-label>{{ 'devices.microphone' | translate }}</mat-label>
     <mat-select [ngModel]="settings.microphoneId()" (ngModelChange)="changeMicrophone($event)">
