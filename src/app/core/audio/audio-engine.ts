@@ -167,7 +167,7 @@ export class AudioEngine {
 
   createPlayback(stream: MediaStream): Playback {
     const context = this.context;
-    if (!context) throw new Error('Audio engine not started');
+    if (!context || !this.outputGain) throw new Error('Audio engine not started');
 
     // Chrome only feeds remote WebRTC audio into Web Audio while a media element holds the stream.
     const element = new Audio();
@@ -183,7 +183,7 @@ export class AudioEngine {
     // shows as talking.
     source.connect(analyser);
     source.connect(gain);
-    gain.connect(this.outputGain ?? context.destination);
+    gain.connect(this.outputGain);
 
     return {
       analyser,
@@ -232,7 +232,6 @@ export class AudioEngine {
     this.sendStream()
       ?.getTracks()
       .forEach((track) => track.stop());
-    this.outputGain?.disconnect();
     await this.context?.close().catch(() => undefined);
     this.context = null;
     this.gate = null;
