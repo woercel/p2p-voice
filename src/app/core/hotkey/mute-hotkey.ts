@@ -25,9 +25,7 @@ export class MuteHotkey {
   private pendingModifier: string | null = null;
 
   readonly capturing = signal(false);
-  readonly label = computed(() =>
-    describeBinding(this.settings.muteKey(), keyLabels(this.i18n)),
-  );
+  readonly label = computed(() => describeBinding(this.settings.muteKey(), keyLabels(this.i18n)));
 
   constructor() {
     const document = inject(DOCUMENT);

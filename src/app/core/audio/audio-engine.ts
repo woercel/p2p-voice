@@ -1,7 +1,13 @@
 import { Injectable, computed, effect, inject, signal } from '@angular/core';
 import { Settings } from '../settings';
 import { Cue, playCue } from './cues';
-import { MIC_VOLUME_MAX, dbToLinear, isGateEnabled } from './levels';
+import {
+  MIC_VOLUME_MAX,
+  OUTPUT_VOLUME_MAX,
+  dbToLinear,
+  isGateEnabled,
+  percentToGain,
+} from './levels';
 
 export type Playback = {
   readonly analyser: AnalyserNode;
@@ -13,10 +19,6 @@ const HIDDEN_DEVICE_IDS = ['', 'default', 'communications'];
 const RESUME_WAIT_MS = 500;
 const PROBE_GAIN = 0.08;
 const PROBE_FADE_S = 0.03;
-
-/** Percent to linear gain; a broken stored value falls back to unchanged. */
-const micGain = (percent: number): number =>
-  Number.isFinite(percent) ? Math.min(MIC_VOLUME_MAX, Math.max(0, percent)) / 100 : 1;
 
 /** An `exact` device id that matches no device fails with one of these, depending on the browser. */
 const isMissingDevice = (error: unknown): boolean => {
@@ -31,6 +33,7 @@ export class AudioEngine {
   private context: AudioContext | null = null;
   private gate: AudioWorkletNode | null = null;
   private inputGain: GainNode | null = null;
+  private outputGain: GainNode | null = null;
   private input: MediaStreamAudioSourceNode | null = null;
   private rawStream: MediaStream | null = null;
   private testTone = false;
@@ -67,9 +70,14 @@ export class AudioEngine {
       this.gate.parameters.get('threshold')?.setValueAtTime(threshold, this.context.currentTime);
     });
     effect(() => {
-      const gain = micGain(this.settings.micVolume());
+      const gain = percentToGain(this.settings.micVolume(), MIC_VOLUME_MAX);
       if (!this.sendStream() || !this.inputGain || !this.context) return;
       this.inputGain.gain.setTargetAtTime(gain, this.context.currentTime, 0.01);
+    });
+    effect(() => {
+      const gain = percentToGain(this.settings.outputVolume(), OUTPUT_VOLUME_MAX);
+      if (!this.outputGain || !this.context) return;
+      this.outputGain.gain.setTargetAtTime(gain, this.context.currentTime, 0.01);
     });
     effect(() => {
       const muted = this.silent();
@@ -113,8 +121,12 @@ export class AudioEngine {
 
       // The volume comes before the meter and the gate, so both see what is actually sent.
       this.inputGain = context.createGain();
-      this.inputGain.gain.value = micGain(this.settings.micVolume());
+      this.inputGain.gain.value = percentToGain(this.settings.micVolume(), MIC_VOLUME_MAX);
       this.inputGain.connect(this.gate);
+
+      this.outputGain = context.createGain();
+      this.outputGain.gain.value = percentToGain(this.settings.outputVolume(), OUTPUT_VOLUME_MAX);
+      this.outputGain.connect(context.destination);
       const analyser = context.createAnalyser();
       analyser.fftSize = 1024;
       this.inputGain.connect(analyser);
@@ -171,7 +183,7 @@ export class AudioEngine {
     // shows as talking.
     source.connect(analyser);
     source.connect(gain);
-    gain.connect(context.destination);
+    gain.connect(this.outputGain ?? context.destination);
 
     return {
       analyser,
@@ -220,10 +232,12 @@ export class AudioEngine {
     this.sendStream()
       ?.getTracks()
       .forEach((track) => track.stop());
+    this.outputGain?.disconnect();
     await this.context?.close().catch(() => undefined);
     this.context = null;
     this.gate = null;
     this.inputGain = null;
+    this.outputGain = null;
     this.input = null;
     this.rawStream = null;
     this.sendStream.set(null);

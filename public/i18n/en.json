@@ -84,6 +84,7 @@
     "micVolume": "Microphone volume",
     "output": "Output",
     "defaultOutput": "Default output",
+    "outputVolume": "Master volume",
     "headphoneMode": "Headphone mode (raw audio)",
     "headphoneHint": "Turns off echo cancellation, noise suppression and automatic gain for the cleanest sound. Turn it off when you use speakers, otherwise the others hear themselves.",
     "reopenFailed": "Could not open the microphone."

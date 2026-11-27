@@ -84,6 +84,7 @@
     "micVolume": "Mikrofonlautstärke",
     "output": "Ausgabe",
     "defaultOutput": "Standard-Ausgabe",
+    "outputVolume": "Gesamtlautstärke",
     "headphoneMode": "Kopfhörer-Modus (rohes Signal)",
     "headphoneHint": "Schaltet Echo-Unterdrückung, Rauschfilter und Auto-Lautstärke aus – für den saubersten Klang. Mit Lautsprechern ausschalten, sonst hören sich die anderen selbst.",
     "reopenFailed": "Das Mikrofon konnte nicht geöffnet werden."

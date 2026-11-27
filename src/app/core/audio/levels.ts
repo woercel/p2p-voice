@@ -10,6 +10,12 @@ export const SPEAKING_DB = -90;
 export const SPEAKING_HOLD_MS = 300;
 /** The microphone volume goes up to this, in percent. */
 export const MIC_VOLUME_MAX = 200;
+/** The master output volume goes up to this, in percent. */
+export const OUTPUT_VOLUME_MAX = 200;
+
+/** Percent to linear gain, clamped to `[0, max]`; a broken stored value falls back to 1. */
+export const percentToGain = (percent: number, max: number): number =>
+  Number.isFinite(percent) ? Math.min(max, Math.max(0, percent)) / 100 : 1;
 
 export const dbToLinear = (db: number): number => 10 ** (db / 20);
 

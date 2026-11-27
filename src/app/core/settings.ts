@@ -20,6 +20,8 @@ export class Settings {
   readonly headphoneMode = persisted('headphones', true);
   readonly microphoneId = persisted('microphone', '');
   readonly outputId = persisted('output', '');
+  /** Master output gain applied to all received voices, in percent. */
+  readonly outputVolume = persisted('outputVolume', 100);
   readonly gateDb = persisted('gateDb', GATE_OFF_DB);
   /** Gain applied to the microphone before the gate, in percent. */
   readonly micVolume = persisted('micVolume', 100);
